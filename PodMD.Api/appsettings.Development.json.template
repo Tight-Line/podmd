@@ -1,0 +1,19 @@
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  },
+  "ConnectionStrings": {
+    "DbContext": "Host=localhost; Database=podMD; Username=<DB_USER>; Password=<DB_PASSWD>; Include Error Detail=True"
+  },
+  "OpenAI": {
+    "BaseUrl": "https://api.openai.com/v1/",
+    "ApiKey": "<OPEN_AI_API_KEY>",
+    "Model": "gpt-4o"
+  },
+  "DataProtection": {
+    "TokenEncryptionKey": "<ENCRYPTION_KEY>"
+  }
+}
