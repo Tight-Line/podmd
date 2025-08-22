@@ -6,11 +6,16 @@ using PodMD.Api.Extensions;
 
 namespace PodMD.Api.Services;
 
-public class OpenAIService
+public interface IChatService
+{
+    Task<Result<TroubleshootingResponse>> AskAsync(string logs);
+}
+
+public class ChatService : IChatService
 {
     private readonly ChatClient _chatClient;
 
-    public OpenAIService(ChatClient chatClient)
+    public ChatService(ChatClient chatClient)
     {
         _chatClient = chatClient;
     }
@@ -27,7 +32,7 @@ public class OpenAIService
         {
             ResponseFormat = ChatResponseFormat.CreateJsonSchemaFormat(
                 "troubleshooting_response",
-                BinaryData.FromBytes(TroubleshootingResponseSchema.Value),
+                BinaryData.FromString(TroubleshootingResponseSchema.Value),
                 jsonSchemaIsStrict: true)
         };
 

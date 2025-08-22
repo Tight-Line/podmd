@@ -18,6 +18,12 @@ builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
 builder.Services.AddOpenApi();
 
+builder.Services.AddOpenApiDocument(config =>
+{
+    config.Title = "PodMD API";
+    config.Version = "1.0.0";
+});
+
 builder.Services.AddDbContext<AppDbContext>(optionsBuilder =>
 {
     optionsBuilder.UseNpgsql(builder.Configuration.GetConnectionString("DbContext"));
@@ -32,6 +38,7 @@ var app = builder.Build();
 app.UseHttpsRedirection();
 
 app.MapClusterEndpoints();
+app.MapRagEndpoints();
 
 app.UseExceptionHandler();
 app.UseStatusCodePages();

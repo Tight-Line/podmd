@@ -17,13 +17,20 @@ public static class ServicesExtensions
             return new ChatClient(openAIConfig.Model, new ApiKeyCredential(openAIConfig.ApiKey),
                 new OpenAIClientOptions() { Endpoint = new Uri(openAIConfig.BaseUrl) });
         });
+        services.AddSingleton<OpenAIClient>(provider =>
+        {
+            var openAIConfig = provider.GetRequiredService<IOptions<OpenAIConfig>>().Value;
+            return new OpenAIClient(new ApiKeyCredential(openAIConfig.ApiKey),
+                new OpenAIClientOptions() { Endpoint = new Uri(openAIConfig.BaseUrl) });
+        });
         services.AddSingleton<IProtectionService, AesProtectionService>(provider =>
         {
             var dataProtection = provider.GetRequiredService<IOptions<DataProtectionConfig>>().Value;
             return new AesProtectionService(dataProtection.TokenEncryptionKey);
         });
 
+        services.AddScoped<IChatService, ChatService>();
+        services.AddScoped<IRagService, RagService>();
         services.AddScoped<IClusterService, ClusterService>();
-        services.AddScoped<OpenAIService>();
     }
 }

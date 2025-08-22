@@ -11,7 +11,7 @@
         "tags": [
           "Clusters"
         ],
-        "operationId": "CreateCluster",
+        "operationId": "RegisterCluster",
         "requestBody": {
           "x-name": "request",
           "content": {
@@ -85,7 +85,7 @@
         "tags": [
           "Clusters"
         ],
-        "operationId": "DeleteCluster",
+        "operationId": "UnregisterCluster",
         "parameters": [
           {
             "name": "clusterGuid",
@@ -105,12 +105,24 @@
         }
       }
     },
-    "/clusters/how-to-fix": {
+    "/clusters/{clusterGuid}/how-to-fix": {
       "post": {
         "tags": [
           "Clusters"
         ],
         "operationId": "HowToFix",
+        "parameters": [
+          {
+            "name": "clusterGuid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
         "requestBody": {
           "x-name": "request",
           "content": {
@@ -121,7 +133,7 @@
             }
           },
           "required": true,
-          "x-position": 1
+          "x-position": 2
         },
         "responses": {
           "200": {
@@ -133,6 +145,143 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/clusters/{clusterGuid}/rag/enable": {
+      "post": {
+        "tags": [
+          "Clusters"
+        ],
+        "operationId": "Enable",
+        "parameters": [
+          {
+            "name": "clusterGuid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/clusters/{clusterGuid}/rag/enable-and-upload": {
+      "post": {
+        "tags": [
+          "Clusters"
+        ],
+        "operationId": "EnableAndUpload",
+        "parameters": [
+          {
+            "name": "clusterGuid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "files": {
+                    "type": "array",
+                    "nullable": true,
+                    "items": {}
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RagResourceResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/rag/resources/upload": {
+      "post": {
+        "tags": [
+          "RAG"
+        ],
+        "operationId": "Upload",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "nullable": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RagResourceResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/rag/link": {
+      "post": {
+        "tags": [
+          "RAG"
+        ],
+        "operationId": "Link",
+        "requestBody": {
+          "x-name": "request",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LinkRagResourceRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": ""
           }
         }
       }
@@ -215,10 +364,12 @@
         "additionalProperties": false,
         "properties": {
           "description": {
-            "type": "string"
+            "type": "string",
+            "nullable": true
           },
           "steps": {
             "type": "array",
+            "nullable": true,
             "items": {
               "$ref": "#/components/schemas/SolutionStep"
             }
@@ -230,10 +381,12 @@
         "additionalProperties": false,
         "properties": {
           "title": {
-            "type": "string"
+            "type": "string",
+            "nullable": true
           },
           "explanation": {
-            "type": "string"
+            "type": "string",
+            "nullable": true
           },
           "command": {
             "type": "string",
@@ -245,10 +398,6 @@
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "clusterGuid": {
-            "type": "string",
-            "format": "guid"
-          },
           "namespace": {
             "type": "string"
           },
@@ -264,6 +413,33 @@
             "type": "string",
             "format": "date-time",
             "nullable": true
+          }
+        }
+      },
+      "RagResourceResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "guid": {
+            "type": "string",
+            "format": "guid"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "LinkRagResourceRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "clusterGuid": {
+            "type": "string",
+            "format": "guid"
+          },
+          "ragResourceGuid": {
+            "type": "string",
+            "format": "guid"
           }
         }
       }
