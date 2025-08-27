@@ -9,5 +9,7 @@ public class Cluster
     public required string Host { get; set; }
     public required string AccessToken { get; set; }
     public string? OpenAIAssistantId { get; set; }
+    public required uint ApiKeyId { get; init; }
     public ICollection<RagResource> RagResources { get; set; } = new List<RagResource>();
+    public ApiKey ApiKey { get; set; }
 }

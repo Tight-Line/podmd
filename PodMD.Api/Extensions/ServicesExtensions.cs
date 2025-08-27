@@ -1,4 +1,5 @@
 using System.ClientModel;
+using System.Security.Claims;
 using Microsoft.Extensions.Options;
 using OpenAI;
 using OpenAI.Chat;
@@ -29,8 +30,22 @@ public static class ServicesExtensions
             return new AesProtectionService(dataProtection.TokenEncryptionKey);
         });
 
+        services.AddSingleton<IHashingService, HashingService>();
+
+        services.AddScoped<IApiKeyService, ApiKeyService>();
         services.AddScoped<IChatService, ChatService>();
         services.AddScoped<IRagService, RagService>();
         services.AddScoped<IClusterService, ClusterService>();
+
+        services.AddScoped<IAuthenticatedApiKeyService, AuthenticatedApiKeyService>(opts =>
+        {
+            var httpContextAccessor = opts.GetRequiredService<IHttpContextAccessor>();
+            var user = httpContextAccessor.HttpContext?.User;
+            var claim = user?.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            return uint.TryParse(claim, out var id)
+                ? new AuthenticatedApiKeyService(id)
+                : new AuthenticatedApiKeyService(null);
+        });
     }
 }

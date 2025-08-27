@@ -33,10 +33,13 @@ builder.RegisterConfigs();
 
 builder.Services.RegisterAppServices();
 
+builder.Services.AddHttpContextAccessor();
+
 var app = builder.Build();
 
 app.UseHttpsRedirection();
 
+app.MapApiKeyEndpoints();
 app.MapClusterEndpoints();
 app.MapRagEndpoints();
 

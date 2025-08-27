@@ -1,3 +1,4 @@
+using PodMD.Api.Authentication;
 using PodMD.Api.Requests;
 using PodMD.Api.Responses;
 using PodMD.Api.Services;
@@ -15,7 +16,7 @@ public static class RagEndpoints
         clusterRagGroup.MapPost("/enable",
                 async (IRagService ragService, IClusterService clusterService, Guid clusterGuid) =>
                 {
-                    var cluster = await clusterService.GetByGuid(clusterGuid);
+                    var cluster = await clusterService.GetByGuidAsync(clusterGuid);
                     if (cluster is null) return Results.NotFound();
 
                     if (cluster.OpenAIAssistantId is not null)
@@ -27,14 +28,15 @@ public static class RagEndpoints
                         : Results.BadRequest(result.Error);
                 })
             .WithName("Enable")
-            .Produces(StatusCodes.Status200OK);
+            .Produces(StatusCodes.Status200OK)
+            .AddEndpointFilter<ApiKeyAuthenticationEndpointFilter>();
 
         clusterRagGroup.MapPost("/enable-and-upload",
                 async (IRagService ragService, IClusterService clusterService,
                     Guid clusterGuid,
                     IFormFileCollection files) =>
                 {
-                    var cluster = await clusterService.GetByGuid(clusterGuid);
+                    var cluster = await clusterService.GetByGuidAsync(clusterGuid);
                     if (cluster is null) return Results.NotFound();
 
                     if (cluster.OpenAIAssistantId is not null)
@@ -48,6 +50,7 @@ public static class RagEndpoints
             .WithName("EnableAndUpload")
             .Accepts<IFormFile>("multipart/form-data")
             .Produces<List<RagResourceResponse>>()
+            .AddEndpointFilter<ApiKeyAuthenticationEndpointFilter>()
             .DisableAntiforgery();
 
         ragGroup.MapPost("/resources/upload", async (IRagService ragService, IFormFile file) =>
@@ -65,12 +68,13 @@ public static class RagEndpoints
             .WithName("Upload")
             .Accepts<IFormFile>("multipart/form-data")
             .Produces<RagResourceResponse>()
+            .AddEndpointFilter<ApiKeyAuthenticationEndpointFilter>()
             .DisableAntiforgery();
 
         ragGroup.MapPost("/link",
                 async (IClusterService clusterService, IRagService ragService, LinkRagResourceRequest request) =>
                 {
-                    var cluster = await clusterService.GetByGuid(request.clusterGuid);
+                    var cluster = await clusterService.GetByGuidAsync(request.clusterGuid);
                     if (cluster is null) return Results.NotFound();
 
                     var ragResource = await ragService.GetByGuid(request.ragResourceGuid);
@@ -83,6 +87,7 @@ public static class RagEndpoints
                         : Results.BadRequest(result.Error);
                 })
             .WithName("Link")
-            .Produces(StatusCodes.Status200OK);
+            .Produces(StatusCodes.Status200OK)
+            .AddEndpointFilter<ApiKeyAuthenticationEndpointFilter>();
     }
 }

@@ -6,6 +6,26 @@
     "version": "1.0.0"
   },
   "paths": {
+    "/api-keys": {
+      "post": {
+        "tags": [
+          "API Keys"
+        ],
+        "operationId": "GetApiKey",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiKeyResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/clusters": {
       "post": {
         "tags": [
@@ -289,6 +309,22 @@
   },
   "components": {
     "schemas": {
+      "ApiKeyResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "apiKey": {
+            "type": "string"
+          },
+          "lookupName": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "ClusterResponse": {
         "type": "object",
         "additionalProperties": false,

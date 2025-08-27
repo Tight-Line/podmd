@@ -15,7 +15,7 @@ public interface IClusterService
     Task<Result<Cluster>> CreateAsync(string host, string token);
     Task<Result<Cluster>> UpdateAsync(Guid guid, string host, string token);
     Task<Result<bool>> DeleteAsync(Guid guid);
-    Task<Cluster?> GetByGuid(Guid guid);
+    Task<Cluster?> GetByGuidAsync(Guid guid);
 
     Task<Result<TroubleshootingResponse>> AnalyzeLogsAsync(Cluster cluster, string ns, string pod,
         int? tail,
@@ -27,6 +27,7 @@ public class ClusterService(
     AppDbContext dbContext,
     IChatService chatService,
     IRagService ragService,
+    IAuthenticatedApiKeyService authenticatedApiKeyService,
     IProtectionService protectionService) : IClusterService
 {
     public async Task<Result<Cluster>> CreateAsync(string host, string token)
@@ -35,7 +36,8 @@ public class ClusterService(
         {
             Host = host,
             AccessToken = protectionService.Protect(token),
-            Guid = Guid.NewGuid()
+            Guid = Guid.NewGuid(),
+            ApiKeyId = authenticatedApiKeyService.ApiKeyId
         };
 
         dbContext.Clusters.Add(cluster);
@@ -46,7 +48,8 @@ public class ClusterService(
 
     public async Task<Result<Cluster>> UpdateAsync(Guid guid, string host, string token)
     {
-        var cluster = await dbContext.Clusters.FirstOrDefaultAsync(c => c.Guid == guid);
+        var cluster = await dbContext.Clusters.FirstOrDefaultAsync(c =>
+            c.Guid == guid && c.ApiKeyId == authenticatedApiKeyService.ApiKeyId);
 
         if (cluster is null)
             return Result.FromException<Cluster>(new KeyNotFoundException($"Cluster with Guid {guid} not found"));
@@ -62,7 +65,8 @@ public class ClusterService(
 
     public async Task<Result<bool>> DeleteAsync(Guid guid)
     {
-        var cluster = await dbContext.Clusters.FirstOrDefaultAsync(c => c.Guid == guid);
+        var cluster = await dbContext.Clusters.FirstOrDefaultAsync(c =>
+            c.Guid == guid && c.ApiKeyId == authenticatedApiKeyService.ApiKeyId);
 
         if (cluster is null)
             return Result.FromException<bool>(new KeyNotFoundException($"Cluster with Guid {guid} not found"));
@@ -73,9 +77,10 @@ public class ClusterService(
         return true;
     }
 
-    public async Task<Cluster?> GetByGuid(Guid guid)
+    public async Task<Cluster?> GetByGuidAsync(Guid guid)
     {
-        return await dbContext.Clusters.FirstOrDefaultAsync(c => c.Guid == guid);
+        return await dbContext.Clusters.FirstOrDefaultAsync(c =>
+            c.Guid == guid && c.ApiKeyId == authenticatedApiKeyService.ApiKeyId);
     }
 
     public async Task<Result<TroubleshootingResponse>> AnalyzeLogsAsync(Cluster cluster, string ns,
@@ -83,7 +88,7 @@ public class ClusterService(
         int? tail = 100,
         DateTimeOffset? sinceTime = null)
     {
-        string? accessToken = null;
+        string? accessToken;
         try
         {
             accessToken = protectionService.Unprotect(cluster.AccessToken);

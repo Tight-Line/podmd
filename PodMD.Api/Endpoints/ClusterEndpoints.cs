@@ -1,3 +1,4 @@
+using PodMD.Api.Authentication;
 using PodMD.Api.DTOs;
 using PodMD.Api.Requests;
 using PodMD.Api.Responses;
@@ -19,12 +20,13 @@ public static class ClusterEndpoints
                     : Results.BadRequest(result.Error);
             })
             .WithName("RegisterCluster")
-            .Produces<ClusterResponse>(StatusCodes.Status201Created);
+            .Produces<ClusterResponse>(StatusCodes.Status201Created)
+            .AddEndpointFilter<ApiKeyAuthenticationEndpointFilter>();
 
         group.MapPut("/{clusterGuid:guid}",
                 async (IClusterService clusterService, Guid clusterGuid, UpdateClusterRequest request) =>
                 {
-                    var cluster = await clusterService.GetByGuid(clusterGuid);
+                    var cluster = await clusterService.GetByGuidAsync(clusterGuid);
                     if (cluster is null) return Results.NotFound();
 
                     var result = await clusterService.UpdateAsync(clusterGuid, request.Host, request.Token);
@@ -33,23 +35,26 @@ public static class ClusterEndpoints
                         : Results.BadRequest(result.Error);
                 })
             .WithName("UpdateCluster")
-            .Produces<ClusterResponse>();
+            .Produces<ClusterResponse>()
+            .AddEndpointFilter<ApiKeyAuthenticationEndpointFilter>();
 
         group.MapDelete("/{clusterGuid:guid}", async (IClusterService clusterService, Guid clusterGuid) =>
             {
-                var cluster = await clusterService.GetByGuid(clusterGuid);
+                var cluster = await clusterService.GetByGuidAsync(clusterGuid);
                 if (cluster is null) return Results.NotFound();
 
                 var result = await clusterService.DeleteAsync(clusterGuid);
                 return result.IsSuccessful ? Results.NoContent() : Results.BadRequest(result.Error);
             })
             .WithName("UnregisterCluster")
-            .Produces(StatusCodes.Status204NoContent);
+            .Produces(StatusCodes.Status204NoContent)
+            .AddEndpointFilter<ApiKeyAuthenticationEndpointFilter>();
 
         group.MapPost("/{clusterGuid:guid}/how-to-fix",
-                async (IClusterService clusterService, Guid clusterGuid, HowToFixRequest request) =>
+                async (IClusterService clusterService, Guid clusterGuid,
+                    HowToFixRequest request) =>
                 {
-                    var cluster = await clusterService.GetByGuid(clusterGuid);
+                    var cluster = await clusterService.GetByGuidAsync(clusterGuid);
                     if (cluster is null) return Results.NotFound();
 
                     var result = await clusterService.AnalyzeLogsAsync(cluster, request.Namespace,
@@ -57,6 +62,7 @@ public static class ClusterEndpoints
                     return result.IsSuccessful ? Results.Ok(result.Value) : Results.BadRequest(result.Error);
                 })
             .WithName("HowToFix")
-            .Produces<TroubleshootingResponse>();
+            .Produces<TroubleshootingResponse>()
+            .AddEndpointFilter<ApiKeyAuthenticationEndpointFilter>();
     }
 }

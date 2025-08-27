@@ -34,10 +34,13 @@ public class RagService : IRagService
     private readonly OpenAIFileClient _openAIFileClient;
     private readonly VectorStoreClient _vectorStoreClient;
     private readonly AppDbContext _dbContext;
+    private readonly IAuthenticatedApiKeyService _authenticatedApiKeyService;
 
-    public RagService(OpenAIClient openAIClient, AppDbContext dbContext)
+    public RagService(OpenAIClient openAIClient, AppDbContext dbContext,
+        IAuthenticatedApiKeyService authenticatedApiKeyService)
     {
         _dbContext = dbContext;
+        _authenticatedApiKeyService = authenticatedApiKeyService;
         _assistantClient = openAIClient.GetAssistantClient();
         _openAIFileClient = openAIClient.GetOpenAIFileClient();
         _vectorStoreClient = openAIClient.GetVectorStoreClient();
@@ -181,7 +184,8 @@ public class RagService : IRagService
 
     public async Task<RagResource?> GetByGuid(Guid guid)
     {
-        return await _dbContext.RagResources.FirstOrDefaultAsync(r => r.Guid == guid);
+        return await _dbContext.RagResources.FirstOrDefaultAsync(r =>
+            r.Guid == guid && r.ApiKeyId == _authenticatedApiKeyService.ApiKeyId);
     }
 
     public async Task<Result<RagResource>> UploadAsync(string fileName, Stream stream)
@@ -192,7 +196,8 @@ public class RagService : IRagService
         {
             Name = fileName,
             Guid = Guid.NewGuid(),
-            OpenAIFileId = openAIFile.Value.Id
+            OpenAIFileId = openAIFile.Value.Id,
+            ApiKeyId = _authenticatedApiKeyService.ApiKeyId
         };
 
         _dbContext.RagResources.Add(ragResource);
