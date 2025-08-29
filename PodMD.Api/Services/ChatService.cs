@@ -1,4 +1,5 @@
 using DotNext;
+using OpenAI;
 using OpenAI.Chat;
 using PodMD.Api.DTOs;
 using PodMD.Api.DTOs.Schemas;
@@ -15,7 +16,7 @@ public class ChatService : IChatService
 {
     private readonly ChatClient _chatClient;
 
-    public ChatService(ChatClient chatClient)
+    public ChatService(OpenAIClient openAiClient, ChatClient chatClient)
     {
         _chatClient = chatClient;
     }

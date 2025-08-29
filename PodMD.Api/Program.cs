@@ -41,7 +41,7 @@ app.UseHttpsRedirection();
 
 app.MapApiKeyEndpoints();
 app.MapClusterEndpoints();
-app.MapRagEndpoints();
+app.MapKnowledgeBaseEndpoints();
 
 app.UseExceptionHandler();
 app.UseStatusCodePages();

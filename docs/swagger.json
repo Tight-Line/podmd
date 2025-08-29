@@ -27,6 +27,27 @@
       }
     },
     "/clusters": {
+      "get": {
+        "tags": [
+          "Clusters"
+        ],
+        "operationId": "GetClusters",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ClusterResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
       "post": {
         "tags": [
           "Clusters"
@@ -125,12 +146,115 @@
         }
       }
     },
-    "/clusters/{clusterGuid}/how-to-fix": {
+    "/clusters/{clusterGuid}/knowledge-bases": {
+      "get": {
+        "tags": [
+          "Clusters"
+        ],
+        "operationId": "GetClusterKnowledgeBases",
+        "parameters": [
+          {
+            "name": "clusterGuid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/KnowledgeBaseResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/clusters/{clusterGuid}/knowledge-bases/{knowledgeBaseGuid}": {
       "post": {
         "tags": [
           "Clusters"
         ],
-        "operationId": "HowToFix",
+        "operationId": "LinkClusterToKnowledgeBase",
+        "parameters": [
+          {
+            "name": "clusterGuid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "knowledgeBaseGuid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 2
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Clusters"
+        ],
+        "operationId": "UnlinkClusterFromKnowledgeBase",
+        "parameters": [
+          {
+            "name": "clusterGuid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "knowledgeBaseGuid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 2
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/clusters/{clusterGuid}/logs/recommend-fixes": {
+      "post": {
+        "tags": [
+          "Clusters"
+        ],
+        "operationId": "RecommendFixes",
         "parameters": [
           {
             "name": "clusterGuid",
@@ -169,65 +293,12 @@
         }
       }
     },
-    "/clusters/{clusterGuid}/rag/enable": {
-      "post": {
+    "/knowledge-bases": {
+      "get": {
         "tags": [
-          "Clusters"
+          "Knowledge Bases"
         ],
-        "operationId": "Enable",
-        "parameters": [
-          {
-            "name": "clusterGuid",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "guid"
-            },
-            "x-position": 1
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        }
-      }
-    },
-    "/clusters/{clusterGuid}/rag/enable-and-upload": {
-      "post": {
-        "tags": [
-          "Clusters"
-        ],
-        "operationId": "EnableAndUpload",
-        "parameters": [
-          {
-            "name": "clusterGuid",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "guid"
-            },
-            "x-position": 1
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "multipart/form-data": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "files": {
-                    "type": "array",
-                    "nullable": true,
-                    "items": {}
-                  }
-                }
-              }
-            }
-          }
-        },
+        "operationId": "GetKnowledgeBases",
         "responses": {
           "200": {
             "description": "",
@@ -236,8 +307,38 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/RagResourceResponse"
+                    "$ref": "#/components/schemas/KnowledgeBaseResponse"
                   }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Knowledge Bases"
+        ],
+        "operationId": "CreateKnowledgeBase",
+        "requestBody": {
+          "x-name": "request",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateKnowledgeBaseRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KnowledgeBaseResponse"
                 }
               }
             }
@@ -245,12 +346,112 @@
         }
       }
     },
-    "/rag/resources/upload": {
+    "/knowledge-bases/{knowledgeBaseGuid}": {
+      "get": {
+        "tags": [
+          "Knowledge Bases"
+        ],
+        "operationId": "GetKnowledgeBase",
+        "parameters": [
+          {
+            "name": "knowledgeBaseGuid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KnowledgeBaseResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Knowledge Bases"
+        ],
+        "operationId": "DeleteKnowledgeBase",
+        "parameters": [
+          {
+            "name": "knowledgeBaseGuid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/knowledge-bases/{knowledgeBaseGuid}/resources": {
+      "get": {
+        "tags": [
+          "Knowledge Bases"
+        ],
+        "operationId": "GetKnowledgeBaseResources",
+        "parameters": [
+          {
+            "name": "knowledgeBaseGuid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ResourceResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
       "post": {
         "tags": [
-          "RAG"
+          "Knowledge Bases"
         ],
-        "operationId": "Upload",
+        "operationId": "UploadResource",
+        "parameters": [
+          {
+            "name": "knowledgeBaseGuid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
         "requestBody": {
           "content": {
             "multipart/form-data": {
@@ -273,7 +474,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/RagResourceResponse"
+                  "$ref": "#/components/schemas/ResourceResponse"
                 }
               }
             }
@@ -281,27 +482,100 @@
         }
       }
     },
-    "/rag/link": {
+    "/knowledge-bases/{knowledgeBaseGuid}/resources/{resourceGuid}": {
       "post": {
         "tags": [
-          "RAG"
+          "Knowledge Bases"
         ],
-        "operationId": "Link",
+        "operationId": "ReplaceResource",
+        "parameters": [
+          {
+            "name": "knowledgeBaseGuid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "resourceGuid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 2
+          }
+        ],
         "requestBody": {
-          "x-name": "request",
           "content": {
-            "application/json": {
+            "multipart/form-data": {
               "schema": {
-                "$ref": "#/components/schemas/LinkRagResourceRequest"
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "nullable": true
+                  }
+                }
               }
             }
-          },
-          "required": true,
-          "x-position": 1
+          }
         },
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResourceResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Knowledge Bases"
+        ],
+        "operationId": "DeleteResource",
+        "parameters": [
+          {
+            "name": "knowledgeBaseGuid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "resourceGuid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 2
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "boolean"
+                }
+              }
+            }
           }
         }
       }
@@ -358,6 +632,22 @@
             "type": "string"
           },
           "token": {
+            "type": "string"
+          }
+        }
+      },
+      "KnowledgeBaseResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "guid": {
+            "type": "string",
+            "format": "guid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
             "type": "string"
           }
         }
@@ -452,7 +742,19 @@
           }
         }
       },
-      "RagResourceResponse": {
+      "CreateKnowledgeBaseRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          }
+        }
+      },
+      "ResourceResponse": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
@@ -462,20 +764,6 @@
           },
           "name": {
             "type": "string"
-          }
-        }
-      },
-      "LinkRagResourceRequest": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "clusterGuid": {
-            "type": "string",
-            "format": "guid"
-          },
-          "ragResourceGuid": {
-            "type": "string",
-            "format": "guid"
           }
         }
       }

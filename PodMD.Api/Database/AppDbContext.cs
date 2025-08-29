@@ -6,7 +6,8 @@ namespace PodMD.Api.Database;
 public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
 {
     public DbSet<Cluster> Clusters { get; set; }
-    public DbSet<RagResource> RagResources { get; set; }
+    public DbSet<KnowledgeBase> KnowledgeBases { get; set; }
+    public DbSet<Resource> Resources { get; set; }
     public DbSet<ApiKey> ApiKeys { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -14,12 +15,20 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         base.OnModelCreating(modelBuilder);
 
         modelBuilder.Entity<Cluster>()
-            .HasMany(c => c.RagResources)
-            .WithMany(r => r.Clusters)
+            .HasMany(c => c.KnowledgeBases)
+            .WithMany(kb => kb.Clusters)
             .UsingEntity<Dictionary<string, object>>(
-                "ClusterRagResource",
-                j => j.HasOne<RagResource>().WithMany().HasForeignKey("RagResourceId"),
-                j => j.HasOne<Cluster>().WithMany().HasForeignKey("ClusterId")
+                "ClusterKnowledgeBase",
+                j => j
+                    .HasOne<KnowledgeBase>()
+                    .WithMany()
+                    .HasForeignKey("KnowledgeBaseId")
+                    .OnDelete(DeleteBehavior.Cascade),
+                j => j
+                    .HasOne<Cluster>()
+                    .WithMany()
+                    .HasForeignKey("ClusterId")
+                    .OnDelete(DeleteBehavior.Cascade)
             );
     }
 }

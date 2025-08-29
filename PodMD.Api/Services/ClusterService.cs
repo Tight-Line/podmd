@@ -15,7 +15,12 @@ public interface IClusterService
     Task<Result<Cluster>> CreateAsync(string host, string token);
     Task<Result<Cluster>> UpdateAsync(Guid guid, string host, string token);
     Task<Result<bool>> DeleteAsync(Guid guid);
+
+    Task<Result<List<Cluster>>> GetAllAsync();
     Task<Cluster?> GetByGuidAsync(Guid guid);
+
+    Task<Result<bool>> LinkAsync(Cluster cluster, KnowledgeBase knowledgeBase);
+    Task<Result<bool>> UnlinkAsync(Cluster cluster, KnowledgeBase knowledgeBase);
 
     Task<Result<TroubleshootingResponse>> AnalyzeLogsAsync(Cluster cluster, string ns, string pod,
         int? tail,
@@ -25,8 +30,7 @@ public interface IClusterService
 public class ClusterService(
     ILogger<ClusterService> logger,
     AppDbContext dbContext,
-    IChatService chatService,
-    IRagService ragService,
+    IResponseRagService responseRagService,
     IAuthenticatedApiKeyService authenticatedApiKeyService,
     IProtectionService protectionService) : IClusterService
 {
@@ -37,6 +41,7 @@ public class ClusterService(
             Host = host,
             AccessToken = protectionService.Protect(token),
             Guid = Guid.NewGuid(),
+            CreatedAt = DateTimeOffset.UtcNow,
             ApiKeyId = authenticatedApiKeyService.ApiKeyId
         };
 
@@ -77,10 +82,41 @@ public class ClusterService(
         return true;
     }
 
+    public async Task<Result<List<Cluster>>> GetAllAsync()
+    {
+        try
+        {
+            var clusters = await dbContext.Clusters
+                .Where(c => c.ApiKeyId == authenticatedApiKeyService.ApiKeyId)
+                .ToListAsync();
+
+            return Result.FromValue(clusters);
+        }
+        catch (Exception ex)
+        {
+            return Result.FromException<List<Cluster>>(ex);
+        }
+    }
+
     public async Task<Cluster?> GetByGuidAsync(Guid guid)
     {
-        return await dbContext.Clusters.FirstOrDefaultAsync(c =>
-            c.Guid == guid && c.ApiKeyId == authenticatedApiKeyService.ApiKeyId);
+        return await dbContext.Clusters
+            .Include(c => c.KnowledgeBases)
+            .FirstOrDefaultAsync(c => c.Guid == guid && c.ApiKeyId == authenticatedApiKeyService.ApiKeyId);
+    }
+
+    public async Task<Result<bool>> LinkAsync(Cluster cluster, KnowledgeBase knowledgeBase)
+    {
+        cluster.KnowledgeBases.Add(knowledgeBase);
+        await dbContext.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<Result<bool>> UnlinkAsync(Cluster cluster, KnowledgeBase knowledgeBase)
+    {
+        cluster.KnowledgeBases.Remove(knowledgeBase);
+        await dbContext.SaveChangesAsync();
+        return true;
     }
 
     public async Task<Result<TroubleshootingResponse>> AnalyzeLogsAsync(Cluster cluster, string ns,
@@ -112,9 +148,6 @@ public class ClusterService(
         using var reader = new StreamReader(logStream, Encoding.UTF8);
         var logs = await reader.ReadToEndAsync();
 
-        if (cluster.OpenAIAssistantId is not null)
-            return await ragService.AskAsync(cluster.OpenAIAssistantId, logs);
-
-        return await chatService.AskAsync(logs);
+        return await responseRagService.AskAsync(cluster, logs);
     }
 }

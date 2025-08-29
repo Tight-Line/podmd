@@ -22,9 +22,7 @@ public class ApiKeyAuthenticationEndpointFilter(IHashingService hashingService, 
         var apiKeyEntity = await apiKeyService.GetByLookupNameAsync(lookupName);
         if (apiKeyEntity is null) return Results.Unauthorized();
 
-        var secretHash = hashingService.Hash(secret);
-
-        if (!hashingService.Verify(secretHash, apiKeyEntity.SecretHash)) return Results.Unauthorized();
+        if (!hashingService.Verify(secret, apiKeyEntity.SecretHash)) return Results.Unauthorized();
 
         var claims = new List<Claim>
         {

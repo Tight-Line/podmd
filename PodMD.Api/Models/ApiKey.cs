@@ -7,5 +7,6 @@ public class ApiKey
     public required string SecretHash { get; init; }
     public required DateTimeOffset CreatedAt { get; init; }
     public ICollection<Cluster> Clusters { get; set; } = new List<Cluster>();
-    public ICollection<RagResource> RagResources { get; set; } = new List<RagResource>();
+    public ICollection<KnowledgeBase> KnowledgeBases { get; set; } = new List<KnowledgeBase>();
+    public ICollection<Resource> Resources { get; set; } = new List<Resource>();
 }

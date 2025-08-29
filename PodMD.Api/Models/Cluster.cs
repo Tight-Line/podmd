@@ -8,8 +8,9 @@ public class Cluster
     public required Guid Guid { get; init; }
     public required string Host { get; set; }
     public required string AccessToken { get; set; }
-    public string? OpenAIAssistantId { get; set; }
+    public required DateTimeOffset CreatedAt { get; init; }
     public required uint ApiKeyId { get; init; }
-    public ICollection<RagResource> RagResources { get; set; } = new List<RagResource>();
     public ApiKey ApiKey { get; set; }
+
+    public ICollection<KnowledgeBase> KnowledgeBases { get; set; } = new List<KnowledgeBase>();
 }
