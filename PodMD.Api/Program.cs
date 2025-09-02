@@ -40,6 +40,7 @@ var app = builder.Build();
 app.UseHttpsRedirection();
 
 app.MapApiKeyEndpoints();
+app.MapConfigurationEndpoints();
 app.MapClusterEndpoints();
 app.MapKnowledgeBaseEndpoints();
 

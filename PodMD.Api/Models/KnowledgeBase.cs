@@ -13,6 +13,6 @@ public class KnowledgeBase
     public required uint ApiKeyId { get; init; }
     public ApiKey ApiKey { get; set; }
 
-    public ICollection<Cluster> Clusters { get; set; } = new List<Cluster>();
+    public ICollection<Configuration> Configurations { get; set; } = new List<Configuration>();
     public ICollection<Resource> Resources { get; set; } = new List<Resource>();
 }

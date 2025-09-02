@@ -1,5 +1,4 @@
 using PodMD.Api.Authentication;
-using PodMD.Api.DTOs;
 using PodMD.Api.Requests;
 using PodMD.Api.Responses;
 using PodMD.Api.Services;
@@ -10,7 +9,7 @@ public static class ClusterEndpoints
 {
     public static void MapClusterEndpoints(this WebApplication app)
     {
-        var group = app.MapGroup("/clusters").WithTags("Clusters");
+        var group = app.MapGroup("/configurations/clusters").WithTags("Clusters");
 
         group.MapGet("", async (IClusterService clusterService) =>
             {
@@ -34,13 +33,13 @@ public static class ClusterEndpoints
             .Produces<ClusterResponse>(StatusCodes.Status201Created)
             .AddEndpointFilter<ApiKeyAuthenticationEndpointFilter>();
 
-        group.MapPut("/{clusterGuid:guid}",
-                async (IClusterService clusterService, Guid clusterGuid, UpdateClusterRequest request) =>
+        group.MapPut("/{configGuid:guid}",
+                async (IClusterService clusterService, Guid configGuid, UpdateClusterRequest request) =>
                 {
-                    var cluster = await clusterService.GetByGuidAsync(clusterGuid);
+                    var cluster = await clusterService.GetByGuidAsync(configGuid);
                     if (cluster is null) return Results.NotFound();
 
-                    var result = await clusterService.UpdateAsync(clusterGuid, request.Host, request.Token);
+                    var result = await clusterService.UpdateAsync(configGuid, request.Host, request.Token);
                     return result.IsSuccessful
                         ? Results.Ok(new { result.Value.Guid, result.Value.Host })
                         : Results.BadRequest(result.Error);
@@ -49,79 +48,16 @@ public static class ClusterEndpoints
             .Produces<ClusterResponse>()
             .AddEndpointFilter<ApiKeyAuthenticationEndpointFilter>();
 
-        group.MapDelete("/{clusterGuid:guid}", async (IClusterService clusterService, Guid clusterGuid) =>
+        group.MapDelete("/{configGuid:guid}", async (IClusterService clusterService, Guid configGuid) =>
             {
-                var cluster = await clusterService.GetByGuidAsync(clusterGuid);
+                var cluster = await clusterService.GetByGuidAsync(configGuid);
                 if (cluster is null) return Results.NotFound();
 
-                var result = await clusterService.DeleteAsync(clusterGuid);
+                var result = await clusterService.DeleteAsync(configGuid);
                 return result.IsSuccessful ? Results.NoContent() : Results.BadRequest(result.Error);
             })
             .WithName("UnregisterCluster")
             .Produces(StatusCodes.Status204NoContent)
-            .AddEndpointFilter<ApiKeyAuthenticationEndpointFilter>();
-
-        group.MapGet("/{clusterGuid:guid}/knowledge-bases",
-                async (IClusterService clusterService, Guid clusterGuid) =>
-                {
-                    var cluster = await clusterService.GetByGuidAsync(clusterGuid);
-                    if (cluster is null) return Results.NotFound();
-
-                    return Results.Ok(cluster.KnowledgeBases.Select(kb => new { kb.Guid, kb.Name, kb.Description }));
-                })
-            .WithName("GetClusterKnowledgeBases")
-            .Produces<IEnumerable<KnowledgeBaseResponse>>()
-            .AddEndpointFilter<ApiKeyAuthenticationEndpointFilter>();
-
-        group.MapPost("/{clusterGuid:guid}/knowledge-bases/{knowledgeBaseGuid:guid}",
-                async (IClusterService clusterService, IKnowledgeBaseService knowledgeBaseService, Guid clusterGuid,
-                    Guid knowledgeBaseGuid) =>
-                {
-                    var cluster = await clusterService.GetByGuidAsync(clusterGuid);
-                    if (cluster is null) return Results.NotFound();
-
-                    var knowledgeBase = await knowledgeBaseService.GetByGuidAsync(knowledgeBaseGuid);
-                    if (knowledgeBase is null) return Results.NotFound();
-
-                    var result = await clusterService.LinkAsync(cluster, knowledgeBase);
-
-                    return result.IsSuccessful ? Results.Ok(result.Value) : Results.BadRequest(result.Error);
-                })
-            .WithName("LinkClusterToKnowledgeBase")
-            .Produces(StatusCodes.Status204NoContent)
-            .AddEndpointFilter<ApiKeyAuthenticationEndpointFilter>();
-
-        group.MapDelete("/{clusterGuid:guid}/knowledge-bases/{knowledgeBaseGuid:guid}",
-                async (IClusterService clusterService, IKnowledgeBaseService knowledgeBaseService, Guid clusterGuid,
-                    Guid knowledgeBaseGuid) =>
-                {
-                    var cluster = await clusterService.GetByGuidAsync(clusterGuid);
-                    if (cluster is null) return Results.NotFound();
-
-                    var knowledgeBase = await knowledgeBaseService.GetByGuidAsync(knowledgeBaseGuid);
-                    if (knowledgeBase is null) return Results.NotFound();
-
-                    var result = await clusterService.UnlinkAsync(cluster, knowledgeBase);
-
-                    return result.IsSuccessful ? Results.Ok(result.Value) : Results.BadRequest(result.Error);
-                })
-            .WithName("UnlinkClusterFromKnowledgeBase")
-            .Produces(StatusCodes.Status204NoContent)
-            .AddEndpointFilter<ApiKeyAuthenticationEndpointFilter>();
-
-        group.MapPost("/{clusterGuid:guid}/logs/recommend-fixes",
-                async (IClusterService clusterService, Guid clusterGuid,
-                    HowToFixRequest request) =>
-                {
-                    var cluster = await clusterService.GetByGuidAsync(clusterGuid);
-                    if (cluster is null) return Results.NotFound();
-
-                    var result = await clusterService.AnalyzeLogsAsync(cluster, request.Namespace,
-                        request.Pod, request.Tail, request.SinceTime);
-                    return result.IsSuccessful ? Results.Ok(result.Value) : Results.BadRequest(result.Error);
-                })
-            .WithName("RecommendFixes")
-            .Produces<TroubleshootingResponse>()
             .AddEndpointFilter<ApiKeyAuthenticationEndpointFilter>();
     }
 }

@@ -34,6 +34,7 @@ public static class ServicesExtensions
         services.AddScoped<IApiKeyService, ApiKeyService>();
         services.AddScoped<IChatService, ChatService>();
         services.AddScoped<IOpenAIService, OpenAIService>();
+        services.AddScoped<IConfigurationService, ConfigurationService>();
         services.AddScoped<IClusterService, ClusterService>();
         services.AddScoped<IKnowledgeBaseService, KnowledgeBaseService>();
         services.AddScoped<IResourceService, ResourceService>();

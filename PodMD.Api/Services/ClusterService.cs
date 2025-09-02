@@ -5,7 +5,6 @@ using k8s;
 using Microsoft.EntityFrameworkCore;
 using PodMD.Api.Extensions;
 using PodMD.Api.Database;
-using PodMD.Api.DTOs;
 using PodMD.Api.Models;
 
 namespace PodMD.Api.Services;
@@ -15,22 +14,15 @@ public interface IClusterService
     Task<Result<Cluster>> CreateAsync(string host, string token);
     Task<Result<Cluster>> UpdateAsync(Guid guid, string host, string token);
     Task<Result<bool>> DeleteAsync(Guid guid);
-
     Task<Result<List<Cluster>>> GetAllAsync();
     Task<Cluster?> GetByGuidAsync(Guid guid);
 
-    Task<Result<bool>> LinkAsync(Cluster cluster, KnowledgeBase knowledgeBase);
-    Task<Result<bool>> UnlinkAsync(Cluster cluster, KnowledgeBase knowledgeBase);
-
-    Task<Result<TroubleshootingResponse>> AnalyzeLogsAsync(Cluster cluster, string ns, string pod,
-        int? tail,
-        DateTimeOffset? sinceTime);
+    Task<Result<string>> GetLogsAsync(Cluster cluster, string ns, string pod, int? tail, DateTimeOffset? sinceTime);
 }
 
 public class ClusterService(
     ILogger<ClusterService> logger,
     AppDbContext dbContext,
-    IResponseRagService responseRagService,
     IAuthenticatedApiKeyService authenticatedApiKeyService,
     IProtectionService protectionService) : IClusterService
 {
@@ -105,21 +97,7 @@ public class ClusterService(
             .FirstOrDefaultAsync(c => c.Guid == guid && c.ApiKeyId == authenticatedApiKeyService.ApiKeyId);
     }
 
-    public async Task<Result<bool>> LinkAsync(Cluster cluster, KnowledgeBase knowledgeBase)
-    {
-        cluster.KnowledgeBases.Add(knowledgeBase);
-        await dbContext.SaveChangesAsync();
-        return true;
-    }
-
-    public async Task<Result<bool>> UnlinkAsync(Cluster cluster, KnowledgeBase knowledgeBase)
-    {
-        cluster.KnowledgeBases.Remove(knowledgeBase);
-        await dbContext.SaveChangesAsync();
-        return true;
-    }
-
-    public async Task<Result<TroubleshootingResponse>> AnalyzeLogsAsync(Cluster cluster, string ns,
+    public async Task<Result<string>> GetLogsAsync(Cluster cluster, string ns,
         string pod,
         int? tail = 100,
         DateTimeOffset? sinceTime = null)
@@ -132,7 +110,7 @@ public class ClusterService(
         catch (CryptographicException ex)
         {
             logger.LogError(ex, "Failed to unprotect access token");
-            return new Result<TroubleshootingResponse>(new Exception("Failed to unprotect access token"));
+            return new Result<string>(new Exception("Failed to unprotect access token"));
         }
 
         var config = new KubernetesClientConfiguration
@@ -148,6 +126,6 @@ public class ClusterService(
         using var reader = new StreamReader(logStream, Encoding.UTF8);
         var logs = await reader.ReadToEndAsync();
 
-        return await responseRagService.AskAsync(cluster, logs);
+        return Result.FromValue(logs);
     }
 }
