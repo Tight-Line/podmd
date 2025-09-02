@@ -9,21 +9,21 @@ using PodMD.Api.Models;
 
 namespace PodMD.Api.Services;
 
-public interface IResponseRagService
+public interface IDiagnosisService
 {
-    Task<Result<TroubleshootingResponse>> AskAsync(Cluster cluster, string logs, CancellationToken ct = default);
+    Task<Result<TroubleshootingResponse>> AskAsync(Configuration config, string logs, CancellationToken ct = default);
 }
 
-public class ResponseRagService : IResponseRagService
+public class RagDiagnosisService : IDiagnosisService
 {
     private readonly OpenAIResponseClient openAIResponseClient;
 
-    public ResponseRagService(OpenAIClient openAIClient)
+    public RagDiagnosisService(OpenAIClient openAIClient)
     {
         openAIResponseClient = openAIClient.GetOpenAIResponseClient("gpt-4o");
     }
 
-    public async Task<Result<TroubleshootingResponse>> AskAsync(Cluster cluster, string logs,
+    public async Task<Result<TroubleshootingResponse>> AskAsync(Configuration config, string logs,
         CancellationToken ct = default)
     {
         var options = new ResponseCreationOptions()
@@ -31,9 +31,9 @@ public class ResponseRagService : IResponseRagService
             Instructions = Prompts.TroubleshootingPrompt
         };
 
-        if (cluster.KnowledgeBases.Count != 0)
+        if (config.KnowledgeBases.Count != 0)
         {
-            var vectorStoreIds = cluster.KnowledgeBases.Select(kb => kb.OpenAIVectorStoreId);
+            var vectorStoreIds = config.KnowledgeBases.Select(kb => kb.OpenAIVectorStoreId);
             options.Tools.Add(ResponseTool.CreateFileSearchTool(vectorStoreIds));
         }
 

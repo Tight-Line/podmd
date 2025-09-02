@@ -38,7 +38,7 @@ public static class ServicesExtensions
         services.AddScoped<IClusterService, ClusterService>();
         services.AddScoped<IKnowledgeBaseService, KnowledgeBaseService>();
         services.AddScoped<IResourceService, ResourceService>();
-        services.AddScoped<IResponseRagService, ResponseRagService>();
+        services.AddScoped<IDiagnosisService, RagDiagnosisService>();
         services.AddScoped<IAuthenticatedApiKeyService, AuthenticatedApiKeyService>();
     }
 }

@@ -43,6 +43,7 @@ app.MapApiKeyEndpoints();
 app.MapConfigurationEndpoints();
 app.MapClusterEndpoints();
 app.MapKnowledgeBaseEndpoints();
+app.MapDiagnoseEndpoints();
 
 app.UseExceptionHandler();
 app.UseStatusCodePages();
