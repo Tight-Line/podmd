@@ -19,6 +19,9 @@ public interface IClusterService
 
     Task<Result<bool>> TestConnectionAsync(string host, string token);
 
+    Task<Result<string>> GetLogsAsync(string host, string accessToken, string ns, string pod, int? tail,
+        DateTimeOffset? sinceTime);
+
     Task<Result<string>> GetLogsAsync(Cluster cluster, string ns, string pod, int? tail, DateTimeOffset? sinceTime);
 }
 
@@ -140,6 +143,27 @@ public class ClusterService(
         var config = new KubernetesClientConfiguration
         {
             Host = cluster.Host,
+            AccessToken = accessToken,
+            SkipTlsVerify = true
+        };
+
+        using var client = new Kubernetes(config);
+
+        var logStream = await client.ReadNamespacedPodLogAsync(pod, ns, tailLines: tail, sinceTime: sinceTime);
+        using var reader = new StreamReader(logStream, Encoding.UTF8);
+        var logs = await reader.ReadToEndAsync();
+
+        return Result.FromValue(logs);
+    }
+
+    public async Task<Result<string>> GetLogsAsync(string host, string accessToken, string ns,
+        string pod,
+        int? tail = 100,
+        DateTimeOffset? sinceTime = null)
+    {
+        var config = new KubernetesClientConfiguration
+        {
+            Host = host,
             AccessToken = accessToken,
             SkipTlsVerify = true
         };

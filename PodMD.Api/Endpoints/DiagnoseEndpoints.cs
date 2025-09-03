@@ -24,7 +24,21 @@ public static class DiagnoseEndpoints
                     var result = await ragDiagnosisService.AskAsync(cluster, logs.Value);
                     return result.IsSuccessful ? Results.Ok(result.Value) : Results.BadRequest(result.Error);
                 })
-            .WithName("DiagnoseCluster")
+            .WithName("DiagnoseConfiguredCluster")
+            .Produces<TroubleshootingResponse>()
+            .AddEndpointFilter<ApiKeyAuthenticationEndpointFilter>();
+
+        group.MapPost("/cluster/adhoc",
+                async (IClusterService clusterService, IDiagnosisService ragDiagnosisService,
+                    AdHocDiagnoseClusterRequest request) =>
+                {
+                    var logs = await clusterService.GetLogsAsync(request.Host, request.Token, request.Namespace,
+                        request.Pod, request.Tail, request.SinceTime);
+
+                    var result = await ragDiagnosisService.AskAsync([], logs.Value);
+                    return result.IsSuccessful ? Results.Ok(result.Value) : Results.BadRequest(result.Error);
+                })
+            .WithName("AdHocDiagnoseCluster")
             .Produces<TroubleshootingResponse>()
             .AddEndpointFilter<ApiKeyAuthenticationEndpointFilter>();
     }
