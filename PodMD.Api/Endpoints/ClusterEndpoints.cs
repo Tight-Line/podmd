@@ -9,7 +9,7 @@ public static class ClusterEndpoints
 {
     public static void MapClusterEndpoints(this WebApplication app)
     {
-        var group = app.MapGroup("/configurations/clusters").WithTags("Clusters");
+        var group = app.MapGroup("/configurations/clusters").WithTags("Cluster Configurations");
 
         group.MapGet("", async (IClusterService clusterService) =>
             {
@@ -58,6 +58,17 @@ public static class ClusterEndpoints
             })
             .WithName("UnregisterCluster")
             .Produces(StatusCodes.Status204NoContent)
+            .AddEndpointFilter<ApiKeyAuthenticationEndpointFilter>();
+
+        group.MapPost("/test-connection", async (IClusterService clusterService, CreateClusterRequest request) =>
+            {
+                var result = await clusterService.TestConnectionAsync(request.Host, request.Token);
+                return result.IsSuccessful
+                    ? Results.Ok(result.Value)
+                    : Results.BadRequest(result.Error);
+            })
+            .WithName("TestConnection")
+            .Produces<bool>()
             .AddEndpointFilter<ApiKeyAuthenticationEndpointFilter>();
     }
 }

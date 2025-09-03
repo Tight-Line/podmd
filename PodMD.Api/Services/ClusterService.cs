@@ -17,6 +17,8 @@ public interface IClusterService
     Task<Result<List<Cluster>>> GetAllAsync();
     Task<Cluster?> GetByGuidAsync(Guid guid);
 
+    Task<Result<bool>> TestConnectionAsync(string host, string token);
+
     Task<Result<string>> GetLogsAsync(Cluster cluster, string ns, string pod, int? tail, DateTimeOffset? sinceTime);
 }
 
@@ -95,6 +97,28 @@ public class ClusterService(
         return await dbContext.Clusters
             .Include(c => c.KnowledgeBases)
             .FirstOrDefaultAsync(c => c.Guid == guid && c.ApiKeyId == authenticatedApiKeyService.ApiKeyId);
+    }
+
+    public async Task<Result<bool>> TestConnectionAsync(string host, string token)
+    {
+        try
+        {
+            var config = new KubernetesClientConfiguration
+            {
+                Host = host,
+                AccessToken = token,
+                SkipTlsVerify = true
+            };
+
+            using var client = new Kubernetes(config);
+            await client.ListNamespaceAsync();
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            return false;
+        }
     }
 
     public async Task<Result<string>> GetLogsAsync(Cluster cluster, string ns,
