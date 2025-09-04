@@ -24,7 +24,7 @@ public static class ClusterEndpoints
 
         group.MapPost("", async (IClusterService clusterService, CreateClusterRequest request) =>
             {
-                var result = await clusterService.CreateAsync(request.Host, request.Token);
+                var result = await clusterService.CreateAsync(request.Host, request.Token, request.CaCertPem);
                 return result.IsSuccessful
                     ? Results.Ok(new { result.Value.Guid, result.Value.Host })
                     : Results.BadRequest(result.Error);
@@ -39,7 +39,8 @@ public static class ClusterEndpoints
                     var cluster = await clusterService.GetByGuidAsync(configGuid);
                     if (cluster is null) return Results.NotFound();
 
-                    var result = await clusterService.UpdateAsync(configGuid, request.Host, request.Token);
+                    var result =
+                        await clusterService.UpdateAsync(configGuid, request.Host, request.Token, request.CaCertPem);
                     return result.IsSuccessful
                         ? Results.Ok(new { result.Value.Guid, result.Value.Host })
                         : Results.BadRequest(result.Error);
@@ -62,7 +63,7 @@ public static class ClusterEndpoints
 
         group.MapPost("/test-connection", async (IClusterService clusterService, CreateClusterRequest request) =>
             {
-                var result = await clusterService.TestConnectionAsync(request.Host, request.Token);
+                var result = await clusterService.TestConnectionAsync(request.Host, request.Token, request.CaCertPem);
                 return result.IsSuccessful
                     ? Results.Ok(result.Value)
                     : Results.BadRequest(result.Error);

@@ -1,3 +1,3 @@
 namespace PodMD.Api.Requests;
 
-public record UpdateClusterRequest(string Host, string Token);
+public record UpdateClusterRequest(string Host, string Token, string? CaCertPem);

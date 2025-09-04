@@ -34,7 +34,8 @@ public static class DiagnoseEndpoints
                 async (IClusterService clusterService, IDiagnosisService ragDiagnosisService,
                     AdhocDiagnosePodRequest request) =>
                 {
-                    var logs = await clusterService.GetLogsAsync(request.Host, request.Token, request.Namespace,
+                    var logs = await clusterService.GetLogsAsync(request.Host, request.Token, request.CaCertPem,
+                        request.Namespace,
                         request.Pod, request.Tail, request.SinceTime);
 
                     var result = await ragDiagnosisService.AskAsync(logs.Value,
