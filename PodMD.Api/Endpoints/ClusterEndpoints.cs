@@ -15,7 +15,7 @@ public static class ClusterEndpoints
             {
                 var result = await clusterService.GetAllAsync();
                 return result.IsSuccessful
-                    ? Results.Ok(result.Value.Select(c => new { c.Guid, c.Host }))
+                    ? Results.Ok(result.Value.Select(c => new { c.Guid, c.Name, c.Host }))
                     : Results.BadRequest(result.Error);
             })
             .WithName("GetClusters")
@@ -24,9 +24,10 @@ public static class ClusterEndpoints
 
         group.MapPost("", async (IClusterService clusterService, CreateClusterRequest request) =>
             {
-                var result = await clusterService.CreateAsync(request.Host, request.Token, request.CaCertPem);
+                var result =
+                    await clusterService.CreateAsync(request.Name, request.Host, request.Token, request.CaCertPem);
                 return result.IsSuccessful
-                    ? Results.Ok(new { result.Value.Guid, result.Value.Host })
+                    ? Results.Ok(new { result.Value.Guid, result.Value.Name, result.Value.Host })
                     : Results.BadRequest(result.Error);
             })
             .WithName("RegisterCluster")
@@ -40,9 +41,10 @@ public static class ClusterEndpoints
                     if (cluster is null) return Results.NotFound();
 
                     var result =
-                        await clusterService.UpdateAsync(configGuid, request.Host, request.Token, request.CaCertPem);
+                        await clusterService.UpdateAsync(configGuid, request.Name, request.Host, request.Token,
+                            request.CaCertPem);
                     return result.IsSuccessful
-                        ? Results.Ok(new { result.Value.Guid, result.Value.Host })
+                        ? Results.Ok(new { result.Value.Guid, result.Value.Name, result.Value.Host })
                         : Results.BadRequest(result.Error);
                 })
             .WithName("UpdateCluster")
@@ -68,7 +70,7 @@ public static class ClusterEndpoints
                     ? Results.Ok(result.Value)
                     : Results.BadRequest(result.Error);
             })
-            .WithName("TestConnection")
+            .WithName("TestClusterConnection")
             .Produces<bool>()
             .AddEndpointFilter<ApiKeyAuthenticationEndpointFilter>();
     }

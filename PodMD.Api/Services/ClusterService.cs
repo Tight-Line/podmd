@@ -12,8 +12,8 @@ namespace PodMD.Api.Services;
 
 public interface IClusterService
 {
-    Task<Result<Cluster>> CreateAsync(string host, string token, string? caCertPem);
-    Task<Result<Cluster>> UpdateAsync(Guid guid, string host, string token, string? caCertPem);
+    Task<Result<Cluster>> CreateAsync(string name, string host, string token, string? caCertPem);
+    Task<Result<Cluster>> UpdateAsync(Guid guid, string name, string host, string token, string? caCertPem);
     Task<Result<bool>> DeleteAsync(Guid guid);
     Task<Result<List<Cluster>>> GetAllAsync();
     Task<Cluster?> GetByGuidAsync(Guid guid);
@@ -33,10 +33,11 @@ public class ClusterService(
     IAuthenticatedApiKeyService authenticatedApiKeyService,
     IProtectionService protectionService) : IClusterService
 {
-    public async Task<Result<Cluster>> CreateAsync(string host, string token, string? caCertPem)
+    public async Task<Result<Cluster>> CreateAsync(string name, string host, string token, string? caCertPem)
     {
         var cluster = new Cluster()
         {
+            Name = name,
             Host = host,
             AccessToken = protectionService.Protect(token),
             CaCertPem = caCertPem is not null ? protectionService.Protect(caCertPem) : null,
@@ -51,7 +52,7 @@ public class ClusterService(
         return cluster;
     }
 
-    public async Task<Result<Cluster>> UpdateAsync(Guid guid, string host, string token, string? caCertPem)
+    public async Task<Result<Cluster>> UpdateAsync(Guid guid, string name, string host, string token, string? caCertPem)
     {
         var cluster = await dbContext.Clusters.FirstOrDefaultAsync(c =>
             c.Guid == guid && c.ApiKeyId == authenticatedApiKeyService.ApiKeyId);
@@ -59,6 +60,7 @@ public class ClusterService(
         if (cluster is null)
             return Result.FromException<Cluster>(new KeyNotFoundException($"Cluster with Guid {guid} not found"));
 
+        cluster.Name = name;
         cluster.Host = host;
         cluster.AccessToken = protectionService.Protect(token);
         cluster.CaCertPem = caCertPem is not null ? protectionService.Protect(caCertPem) : null;

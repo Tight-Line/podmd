@@ -1,3 +1,3 @@
 namespace PodMD.Api.Responses;
 
-public record ClusterResponse(Guid Guid, string Host);
+public record ClusterResponse(Guid Guid, string Name, string Host);
