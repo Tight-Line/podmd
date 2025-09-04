@@ -11,9 +11,9 @@ public static class DiagnoseEndpoints
     {
         var group = app.MapGroup("/diagnose").WithTags("Diagnose");
 
-        group.MapPost("/cluster/{configGuid:guid}",
+        group.MapPost("/cluster/{configGuid:guid}/pod",
                 async (IClusterService clusterService, IDiagnosisService ragDiagnosisService, Guid configGuid,
-                    DiagnoseClusterRequest request) =>
+                    DiagnoseClusterPodRequest request) =>
                 {
                     var cluster = await clusterService.GetByGuidAsync(configGuid);
                     if (cluster is null) return Results.NotFound();
@@ -21,24 +21,38 @@ public static class DiagnoseEndpoints
                     var logs = await clusterService.GetLogsAsync(cluster, request.Namespace,
                         request.Pod, request.Tail, request.SinceTime);
 
-                    var result = await ragDiagnosisService.AskAsync(cluster, logs.Value);
+                    var result =
+                        await ragDiagnosisService.AskAsync(cluster, logs.Value,
+                            (request.KnowledgeBaseGuids ?? Array.Empty<Guid>()).ToList());
                     return result.IsSuccessful ? Results.Ok(result.Value) : Results.BadRequest(result.Error);
                 })
-            .WithName("DiagnoseConfiguredCluster")
+            .WithName("DiagnoseConfiguredClusterPod")
             .Produces<TroubleshootingResponse>()
             .AddEndpointFilter<ApiKeyAuthenticationEndpointFilter>();
 
-        group.MapPost("/cluster/adhoc",
+        group.MapPost("/pod/adhoc",
                 async (IClusterService clusterService, IDiagnosisService ragDiagnosisService,
-                    AdHocDiagnoseClusterRequest request) =>
+                    AdhocDiagnosePodRequest request) =>
                 {
                     var logs = await clusterService.GetLogsAsync(request.Host, request.Token, request.Namespace,
                         request.Pod, request.Tail, request.SinceTime);
 
-                    var result = await ragDiagnosisService.AskAsync([], logs.Value);
+                    var result = await ragDiagnosisService.AskAsync(logs.Value,
+                        (request.KnowledgeBaseGuids ?? Array.Empty<Guid>()).ToList());
                     return result.IsSuccessful ? Results.Ok(result.Value) : Results.BadRequest(result.Error);
                 })
-            .WithName("AdHocDiagnoseCluster")
+            .WithName("AdhocDiagnosePod")
+            .Produces<TroubleshootingResponse>()
+            .AddEndpointFilter<ApiKeyAuthenticationEndpointFilter>();
+
+        group.MapPost("/logs",
+                async (IDiagnosisService ragDiagnosisService, DiagnoseLogsRequest request) =>
+                {
+                    var result = await ragDiagnosisService.AskAsync(request.Logs,
+                        (request.KnowledgeBaseGuids ?? Array.Empty<Guid>()).ToList());
+                    return result.IsSuccessful ? Results.Ok(result.Value) : Results.BadRequest(result.Error);
+                })
+            .WithName("DiagnoseLogs")
             .Produces<TroubleshootingResponse>()
             .AddEndpointFilter<ApiKeyAuthenticationEndpointFilter>();
     }

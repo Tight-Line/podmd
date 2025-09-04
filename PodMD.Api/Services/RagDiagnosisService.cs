@@ -12,22 +12,25 @@ namespace PodMD.Api.Services;
 
 public interface IDiagnosisService
 {
-    Task<Result<TroubleshootingResponse>> AskAsync(Configuration config, string logs, CancellationToken ct = default);
-
-    Task<Result<TroubleshootingResponse>> AskAsync(IEnumerable<string> vectorStoreIds, string logs,
+    Task<Result<TroubleshootingResponse>> AskAsync(string logs, List<Guid> kbGuids,
         CancellationToken ct = default);
+
+    Task<Result<TroubleshootingResponse>> AskAsync(Configuration config, string logs,
+        List<Guid> kbGuids, CancellationToken ct = default);
 }
 
 public class RagDiagnosisService : IDiagnosisService
 {
     private readonly OpenAIResponseClient openAIResponseClient;
+    private readonly IKnowledgeBaseService _knowledgeBaseService;
 
-    public RagDiagnosisService(OpenAIClient openAIClient)
+    public RagDiagnosisService(OpenAIClient openAIClient, IKnowledgeBaseService kbService)
     {
         openAIResponseClient = openAIClient.GetOpenAIResponseClient("gpt-4o");
+        _knowledgeBaseService = kbService;
     }
 
-    public async Task<Result<TroubleshootingResponse>> AskAsync(IEnumerable<string> vectorStoreIds, string logs,
+    public async Task<Result<TroubleshootingResponse>> AskAsync(string logs, List<Guid> kbGuids,
         CancellationToken ct = default)
     {
         var options = new ResponseCreationOptions
@@ -40,7 +43,14 @@ public class RagDiagnosisService : IDiagnosisService
 
         options.Tools.Add(tool);
 
-        if (vectorStoreIds.Any())
+        var vectorStoreIds = new List<string>();
+        foreach (var kbGuid in kbGuids)
+        {
+            var kb = await _knowledgeBaseService.GetByGuidAsync(kbGuid);
+            if (kb is not null) vectorStoreIds.Add(kb.OpenAIVectorStoreId);
+        }
+
+        if (vectorStoreIds.Count != 0)
             options.Tools.Add(ResponseTool.CreateFileSearchTool(vectorStoreIds));
 
         OpenAIResponse response = await openAIResponseClient.CreateResponseAsync(logs, options, ct);
@@ -62,39 +72,11 @@ public class RagDiagnosisService : IDiagnosisService
     }
 
     public async Task<Result<TroubleshootingResponse>> AskAsync(Configuration config, string logs,
+        List<Guid> kbGuids,
         CancellationToken ct = default)
     {
-        var options = new ResponseCreationOptions()
-        {
-            Instructions = Prompts.TroubleshootingPrompt
-        };
+        kbGuids.AddRange(config.KnowledgeBases.Select(kb => kb.Guid));
 
-        if (config.KnowledgeBases.Count != 0)
-        {
-            var vectorStoreIds = config.KnowledgeBases.Select(kb => kb.OpenAIVectorStoreId);
-            options.Tools.Add(ResponseTool.CreateFileSearchTool(vectorStoreIds));
-        }
-
-        OpenAIResponse response = await openAIResponseClient.CreateResponseAsync(logs, options, ct);
-
-        var json = response.GetOutputText();
-
-        var cleaned = json.Trim()
-            .Trim('`')
-            .Replace("json", "", StringComparison.OrdinalIgnoreCase)
-            .Trim();
-
-        try
-        {
-            var res = JsonSerializer.Deserialize<TroubleshootingResponse>(cleaned);
-
-            return res is null
-                ? Result.FromException<TroubleshootingResponse>(new JsonException("Deserialized value is null"))
-                : Result.FromValue(res);
-        }
-        catch (JsonException ex)
-        {
-            return Result.FromException<TroubleshootingResponse>(ex);
-        }
+        return await AskAsync(logs, kbGuids, ct);
     }
 }

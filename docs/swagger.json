@@ -26,10 +26,113 @@
         }
       }
     },
-    "/clusters": {
+    "/configurations/{configGuid}/knowledge-bases": {
       "get": {
         "tags": [
-          "Clusters"
+          "Configurations"
+        ],
+        "operationId": "GetConfigurationsKnowledgeBases",
+        "parameters": [
+          {
+            "name": "configGuid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/KnowledgeBaseResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/configurations/{configGuid}/knowledge-bases/{kbGuid}": {
+      "post": {
+        "tags": [
+          "Configurations"
+        ],
+        "operationId": "LinkConfigurationToKnowledgeBase",
+        "parameters": [
+          {
+            "name": "configGuid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "kbGuid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 2
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Configurations"
+        ],
+        "operationId": "UnlinkConfigurationFromKnowledgeBase",
+        "parameters": [
+          {
+            "name": "configGuid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "kbGuid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 2
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/configurations/clusters": {
+      "get": {
+        "tags": [
+          "Cluster Configurations"
         ],
         "operationId": "GetClusters",
         "responses": {
@@ -50,7 +153,7 @@
       },
       "post": {
         "tags": [
-          "Clusters"
+          "Cluster Configurations"
         ],
         "operationId": "RegisterCluster",
         "requestBody": {
@@ -79,15 +182,15 @@
         }
       }
     },
-    "/clusters/{clusterGuid}": {
+    "/configurations/clusters/{configGuid}": {
       "put": {
         "tags": [
-          "Clusters"
+          "Cluster Configurations"
         ],
         "operationId": "UpdateCluster",
         "parameters": [
           {
-            "name": "clusterGuid",
+            "name": "configGuid",
             "in": "path",
             "required": true,
             "schema": {
@@ -124,12 +227,12 @@
       },
       "delete": {
         "tags": [
-          "Clusters"
+          "Cluster Configurations"
         ],
         "operationId": "UnregisterCluster",
         "parameters": [
           {
-            "name": "clusterGuid",
+            "name": "configGuid",
             "in": "path",
             "required": true,
             "schema": {
@@ -146,138 +249,23 @@
         }
       }
     },
-    "/clusters/{clusterGuid}/knowledge-bases": {
-      "get": {
-        "tags": [
-          "Clusters"
-        ],
-        "operationId": "GetClusterKnowledgeBases",
-        "parameters": [
-          {
-            "name": "clusterGuid",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "guid"
-            },
-            "x-position": 1
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/KnowledgeBaseResponse"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/clusters/{clusterGuid}/knowledge-bases/{knowledgeBaseGuid}": {
+    "/configurations/clusters/test-connection": {
       "post": {
         "tags": [
-          "Clusters"
+          "Cluster Configurations"
         ],
-        "operationId": "LinkClusterToKnowledgeBase",
-        "parameters": [
-          {
-            "name": "clusterGuid",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "guid"
-            },
-            "x-position": 1
-          },
-          {
-            "name": "knowledgeBaseGuid",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "guid"
-            },
-            "x-position": 2
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": ""
-          }
-        }
-      },
-      "delete": {
-        "tags": [
-          "Clusters"
-        ],
-        "operationId": "UnlinkClusterFromKnowledgeBase",
-        "parameters": [
-          {
-            "name": "clusterGuid",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "guid"
-            },
-            "x-position": 1
-          },
-          {
-            "name": "knowledgeBaseGuid",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "guid"
-            },
-            "x-position": 2
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": ""
-          }
-        }
-      }
-    },
-    "/clusters/{clusterGuid}/logs/recommend-fixes": {
-      "post": {
-        "tags": [
-          "Clusters"
-        ],
-        "operationId": "RecommendFixes",
-        "parameters": [
-          {
-            "name": "clusterGuid",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "guid"
-            },
-            "x-position": 1
-          }
-        ],
+        "operationId": "TestConnection",
         "requestBody": {
           "x-name": "request",
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/HowToFixRequest"
+                "$ref": "#/components/schemas/CreateClusterRequest"
               }
             }
           },
           "required": true,
-          "x-position": 2
+          "x-position": 1
         },
         "responses": {
           "200": {
@@ -285,7 +273,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/TroubleshootingResponse"
+                  "type": "boolean"
                 }
               }
             }
@@ -579,6 +567,114 @@
           }
         }
       }
+    },
+    "/diagnose/cluster/{configGuid}/pod": {
+      "post": {
+        "tags": [
+          "Diagnose"
+        ],
+        "operationId": "DiagnoseConfiguredClusterPod",
+        "parameters": [
+          {
+            "name": "configGuid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "x-name": "request",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DiagnoseClusterPodRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TroubleshootingResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/diagnose/pod/adhoc": {
+      "post": {
+        "tags": [
+          "Diagnose"
+        ],
+        "operationId": "AdhocDiagnosePod",
+        "requestBody": {
+          "x-name": "request",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdhocDiagnosePodRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TroubleshootingResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/diagnose/logs": {
+      "post": {
+        "tags": [
+          "Diagnose"
+        ],
+        "operationId": "DiagnoseLogs",
+        "requestBody": {
+          "x-name": "request",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DiagnoseLogsRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TroubleshootingResponse"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -596,6 +692,22 @@
           "createdAt": {
             "type": "string",
             "format": "date-time"
+          }
+        }
+      },
+      "KnowledgeBaseResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "guid": {
+            "type": "string",
+            "format": "guid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
           }
         }
       },
@@ -636,7 +748,19 @@
           }
         }
       },
-      "KnowledgeBaseResponse": {
+      "CreateKnowledgeBaseRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          }
+        }
+      },
+      "ResourceResponse": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
@@ -645,9 +769,6 @@
             "format": "guid"
           },
           "name": {
-            "type": "string"
-          },
-          "description": {
             "type": "string"
           }
         }
@@ -720,7 +841,7 @@
           }
         }
       },
-      "HowToFixRequest": {
+      "DiagnoseClusterPodRequest": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
@@ -739,31 +860,50 @@
             "type": "string",
             "format": "date-time",
             "nullable": true
+          },
+          "knowledgeBaseGuids": {
+            "type": "array",
+            "nullable": true,
+            "items": {
+              "type": "string",
+              "format": "guid"
+            }
           }
         }
       },
-      "CreateKnowledgeBaseRequest": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "name": {
-            "type": "string"
+      "AdhocDiagnosePodRequest": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/DiagnoseClusterPodRequest"
           },
-          "description": {
-            "type": "string"
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "host": {
+                "type": "string"
+              },
+              "token": {
+                "type": "string"
+              }
+            }
           }
-        }
+        ]
       },
-      "ResourceResponse": {
+      "DiagnoseLogsRequest": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "guid": {
-            "type": "string",
-            "format": "guid"
-          },
-          "name": {
+          "logs": {
             "type": "string"
+          },
+          "knowledgeBaseGuids": {
+            "type": "array",
+            "nullable": true,
+            "items": {
+              "type": "string",
+              "format": "guid"
+            }
           }
         }
       }
