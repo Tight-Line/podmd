@@ -8,6 +8,7 @@ namespace PodMD.Api.Services;
 public interface IConfigurationService
 {
     Task<Configuration?> GetByGuidAsync(Guid guid);
+    Task<Result<List<KnowledgeBase>>> GetAvailableKnowledgeBases(Guid guid);
     Task<Result<bool>> LinkAsync(Configuration configuration, KnowledgeBase knowledgeBase);
     Task<Result<bool>> UnlinkAsync(Configuration configuration, KnowledgeBase knowledgeBase);
 }
@@ -20,6 +21,15 @@ public class ConfigurationService(AppDbContext dbContext, IAuthenticatedApiKeySe
         return await dbContext.Configurations
             .Include(c => c.KnowledgeBases)
             .FirstOrDefaultAsync(c => c.Guid == guid && c.ApiKeyId == authenticatedApiKeyService.ApiKeyId);
+    }
+
+    public async Task<Result<List<KnowledgeBase>>> GetAvailableKnowledgeBases(Guid guid)
+    {
+        var availableKbs = await dbContext.Set<KnowledgeBase>()
+            .Where(kb => !kb.Configurations.Any(link => link.Guid == guid))
+            .ToListAsync();
+
+        return Result.FromValue(availableKbs);
     }
 
     public async Task<Result<bool>> LinkAsync(Configuration configuration, KnowledgeBase knowledgeBase)

@@ -23,6 +23,22 @@ public static class ConfigurationEndpoints
             .Produces<IEnumerable<KnowledgeBaseResponse>>()
             .AddEndpointFilter<ApiKeyAuthenticationEndpointFilter>();
 
+        group.MapGet("/{configGuid:guid}/available-knowledge-bases",
+                async (IConfigurationService configurationService, Guid configGuid) =>
+                {
+                    var config = await configurationService.GetByGuidAsync(configGuid);
+                    if (config is null) return Results.NotFound();
+
+                    var result = await configurationService.GetAvailableKnowledgeBases(configGuid);
+
+                    return result.IsSuccessful
+                        ? Results.Ok(result.Value.Select(kb => new { kb.Guid, kb.Name, kb.Description, kb.CreatedAt }))
+                        : Results.BadRequest(result.Error);
+                })
+            .WithName("GetAvailableKnowledgeBases")
+            .Produces<IEnumerable<KnowledgeBaseResponse>>()
+            .AddEndpointFilter<ApiKeyAuthenticationEndpointFilter>();
+
         group.MapPost("/{configGuid:guid}/knowledge-bases/{kbGuid:guid}",
                 async (IConfigurationService configurationService, IKnowledgeBaseService knowledgeBaseService,
                     Guid configGuid,
