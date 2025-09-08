@@ -61,6 +61,41 @@
         }
       }
     },
+    "/configurations/{configGuid}/available-knowledge-bases": {
+      "get": {
+        "tags": [
+          "Configurations"
+        ],
+        "operationId": "GetAvailableKnowledgeBases",
+        "parameters": [
+          {
+            "name": "configGuid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/KnowledgeBaseResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/configurations/{configGuid}/knowledge-bases/{kbGuid}": {
       "post": {
         "tags": [
@@ -254,13 +289,165 @@
         "tags": [
           "Cluster Configurations"
         ],
-        "operationId": "TestConnection",
+        "operationId": "TestClusterConnection",
         "requestBody": {
           "x-name": "request",
           "content": {
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/CreateClusterRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/configurations/jenkins-servers": {
+      "get": {
+        "tags": [
+          "Jenkins Server Configurations"
+        ],
+        "operationId": "GetJenkinsServers",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/JenkinsServerResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Jenkins Server Configurations"
+        ],
+        "operationId": "RegisterJenkinsServer",
+        "requestBody": {
+          "x-name": "request",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateJenkinsServerRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JenkinsServerResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/configurations/jenkins-servers/{configGuid}": {
+      "put": {
+        "tags": [
+          "Jenkins Server Configurations"
+        ],
+        "operationId": "UpdateJenkinsServer",
+        "parameters": [
+          {
+            "name": "configGuid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "x-name": "request",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateJenkinsServerRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JenkinsServerResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Jenkins Server Configurations"
+        ],
+        "operationId": "UnregisterJenkinsServer",
+        "parameters": [
+          {
+            "name": "configGuid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/configurations/jenkins-servers/test-connection": {
+      "post": {
+        "tags": [
+          "Jenkins Server Configurations"
+        ],
+        "operationId": "TestJenkinsServerConnection",
+        "requestBody": {
+          "x-name": "request",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateJenkinsServerRequest"
               }
             }
           },
@@ -427,7 +614,7 @@
         "tags": [
           "Knowledge Bases"
         ],
-        "operationId": "UploadResource",
+        "operationId": "UploadResources",
         "parameters": [
           {
             "name": "knowledgeBaseGuid",
@@ -446,10 +633,10 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "file": {
-                    "type": "string",
-                    "format": "binary",
-                    "nullable": true
+                  "files": {
+                    "type": "array",
+                    "nullable": true,
+                    "items": {}
                   }
                 }
               }
@@ -568,12 +755,12 @@
         }
       }
     },
-    "/diagnose/cluster/{configGuid}/pod": {
+    "/diagnose/{configGuid}": {
       "post": {
         "tags": [
           "Diagnose"
         ],
-        "operationId": "DiagnoseConfiguredClusterPod",
+        "operationId": "Diagnose",
         "parameters": [
           {
             "name": "configGuid",
@@ -587,48 +774,17 @@
           }
         ],
         "requestBody": {
-          "x-name": "request",
+          "x-name": "parameters",
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/DiagnoseClusterPodRequest"
+                "type": "object",
+                "additionalProperties": {}
               }
             }
           },
           "required": true,
           "x-position": 2
-        },
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TroubleshootingResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/diagnose/pod/adhoc": {
-      "post": {
-        "tags": [
-          "Diagnose"
-        ],
-        "operationId": "AdhocDiagnosePod",
-        "requestBody": {
-          "x-name": "request",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/AdhocDiagnosePodRequest"
-              }
-            }
-          },
-          "required": true,
-          "x-position": 1
         },
         "responses": {
           "200": {
@@ -708,6 +864,10 @@
           },
           "description": {
             "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
           }
         }
       },
@@ -719,6 +879,9 @@
             "type": "string",
             "format": "guid"
           },
+          "name": {
+            "type": "string"
+          },
           "host": {
             "type": "string"
           }
@@ -728,11 +891,18 @@
         "type": "object",
         "additionalProperties": false,
         "properties": {
+          "name": {
+            "type": "string"
+          },
           "host": {
             "type": "string"
           },
           "token": {
             "type": "string"
+          },
+          "caCertPem": {
+            "type": "string",
+            "nullable": true
           }
         }
       },
@@ -740,10 +910,69 @@
         "type": "object",
         "additionalProperties": false,
         "properties": {
+          "name": {
+            "type": "string"
+          },
           "host": {
             "type": "string"
           },
           "token": {
+            "type": "string"
+          },
+          "caCertPem": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "JenkinsServerResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "guid": {
+            "type": "string",
+            "format": "guid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "host": {
+            "type": "string"
+          }
+        }
+      },
+      "CreateJenkinsServerRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "host": {
+            "type": "string"
+          },
+          "apiToken": {
+            "type": "string"
+          },
+          "username": {
+            "type": "string"
+          }
+        }
+      },
+      "UpdateJenkinsServerRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "host": {
+            "type": "string"
+          },
+          "token": {
+            "type": "string"
+          },
+          "username": {
             "type": "string"
           }
         }
@@ -840,55 +1069,6 @@
             "nullable": true
           }
         }
-      },
-      "DiagnoseClusterPodRequest": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "namespace": {
-            "type": "string"
-          },
-          "pod": {
-            "type": "string"
-          },
-          "tail": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true
-          },
-          "sinceTime": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true
-          },
-          "knowledgeBaseGuids": {
-            "type": "array",
-            "nullable": true,
-            "items": {
-              "type": "string",
-              "format": "guid"
-            }
-          }
-        }
-      },
-      "AdhocDiagnosePodRequest": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/DiagnoseClusterPodRequest"
-          },
-          {
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-              "host": {
-                "type": "string"
-              },
-              "token": {
-                "type": "string"
-              }
-            }
-          }
-        ]
       },
       "DiagnoseLogsRequest": {
         "type": "object",
