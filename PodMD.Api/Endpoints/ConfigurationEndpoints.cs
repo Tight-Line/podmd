@@ -16,7 +16,8 @@ public static class ConfigurationEndpoints
                     var config = await configurationService.GetByGuidAsync(configGuid);
                     if (config is null) return Results.NotFound();
 
-                    return Results.Ok(config.KnowledgeBases.Select(kb => new { kb.Guid, kb.Name, kb.Description }));
+                    return Results.Ok(config.KnowledgeBases.Select(kb =>
+                        new { kb.Guid, kb.Name, kb.Description, kb.CreatedAt }));
                 })
             .WithName("GetConfigurationsKnowledgeBases")
             .Produces<IEnumerable<KnowledgeBaseResponse>>()

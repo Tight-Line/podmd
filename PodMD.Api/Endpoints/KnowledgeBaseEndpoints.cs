@@ -39,7 +39,8 @@ public static class KnowledgeBaseEndpoints
                     var knowledgeBase = await knowledgeBaseService.GetByGuidAsync(knowledgeBaseGuid);
                     if (knowledgeBase is null) return Results.NotFound();
 
-                    return Results.Ok(new { knowledgeBase.Guid, knowledgeBase.Name, knowledgeBase.Description });
+                    return Results.Ok(new
+                        { knowledgeBase.Guid, knowledgeBase.Name, knowledgeBase.Description, knowledgeBase.CreatedAt });
                 })
             .WithName("GetKnowledgeBase")
             .Produces<KnowledgeBaseResponse>()
