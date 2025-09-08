@@ -72,20 +72,24 @@ public static class KnowledgeBaseEndpoints
             .AddEndpointFilter<ApiKeyAuthenticationEndpointFilter>();
 
         group.MapPost("/{knowledgeBaseGuid:guid}/resources",
-                async (IKnowledgeBaseService knowledgeBaseService, IResourceService resourceService, IFormFile file,
+                async (IKnowledgeBaseService knowledgeBaseService, IResourceService resourceService,
+                    IFormFileCollection files,
                     Guid knowledgeBaseGuid) =>
                 {
                     var knowledgeBase = await knowledgeBaseService.GetByGuidAsync(knowledgeBaseGuid);
                     if (knowledgeBase == null) return Results.NotFound();
 
-                    await using var stream = file.OpenReadStream();
-                    var result = await resourceService.UploadAsync(knowledgeBase, file.FileName, stream);
+                    var responses = new List<ResourceResponse>();
+                    foreach (var file in files)
+                    {
+                        await using var stream = file.OpenReadStream();
+                        var result = await resourceService.UploadAsync(knowledgeBase, file.FileName, stream);
+                        responses.Add(new ResourceResponse(result.Value.Guid, result.Value.FileName));
+                    }
 
-                    return result.IsSuccessful
-                        ? Results.Ok(new { result.Value.Guid, Name = result.Value.FileName })
-                        : Results.BadRequest(result.Error);
+                    return Results.Ok(responses);
                 })
-            .WithName("UploadResource")
+            .WithName("UploadResources")
             .Accepts<IFormFile>("multipart/form-data")
             .Produces<ResourceResponse>()
             .DisableAntiforgery()
@@ -105,7 +109,9 @@ public static class KnowledgeBaseEndpoints
                     var result =
                         await resourceService.ReplaceAsync(knowledgeBase, resource, file.FileName, stream);
 
-                    return result.IsSuccessful ? Results.Ok(result.Value) : Results.BadRequest(result.Error);
+                    return result.IsSuccessful
+                        ? Results.Ok(new ResourceResponse(result.Value.Guid, result.Value.FileName))
+                        : Results.BadRequest(result.Error);
                 })
             .WithName("ReplaceResource")
             .Accepts<IFormFile>("multipart/form-data")

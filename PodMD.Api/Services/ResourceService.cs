@@ -59,6 +59,7 @@ public class ResourceService(
         var openAIFile = await openAiService.UploadFileAsync(stream, fileName);
 
         resource.OpenAIFileId = openAIFile.Value.Id;
+        resource.FileName = fileName;
 
         await openAiService.AddFileToVectorStoreAsync(knowledgeBase.OpenAIVectorStoreId, openAIFile.Value.Id);
 
