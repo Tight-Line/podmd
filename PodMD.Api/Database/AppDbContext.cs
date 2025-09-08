@@ -7,6 +7,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 {
     public DbSet<Configuration> Configurations { get; set; }
     public DbSet<Cluster> Clusters { get; set; }
+    public DbSet<JenkinsServer> JenkinsServers { get; set; }
     public DbSet<KnowledgeBase> KnowledgeBases { get; set; }
     public DbSet<Resource> Resources { get; set; }
     public DbSet<ApiKey> ApiKeys { get; set; }
@@ -15,6 +16,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     {
         modelBuilder.Entity<Configuration>().ToTable("Configurations");
         modelBuilder.Entity<Cluster>().ToTable("Clusters");
+        modelBuilder.Entity<JenkinsServer>().ToTable("JenkinsServers");
 
         modelBuilder.Entity<Configuration>()
             .HasMany(c => c.KnowledgeBases)

@@ -42,6 +42,7 @@ app.UseHttpsRedirection();
 app.MapApiKeyEndpoints();
 app.MapConfigurationEndpoints();
 app.MapClusterEndpoints();
+app.MapJenkinsServerEndpoints();
 app.MapKnowledgeBaseEndpoints();
 app.MapDiagnoseEndpoints();
 

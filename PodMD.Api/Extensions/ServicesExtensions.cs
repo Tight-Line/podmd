@@ -31,11 +31,14 @@ public static class ServicesExtensions
 
         services.AddSingleton<IHashingService, HashingService>();
 
+        services.AddHttpClient();
+
         services.AddScoped<IApiKeyService, ApiKeyService>();
         services.AddScoped<IChatService, ChatService>();
         services.AddScoped<IOpenAIService, OpenAIService>();
         services.AddScoped<IConfigurationService, ConfigurationService>();
         services.AddScoped<IClusterService, ClusterService>();
+        services.AddScoped<IJenkinsServerService, JenkinsServerService>();
         services.AddScoped<IKnowledgeBaseService, KnowledgeBaseService>();
         services.AddScoped<IResourceService, ResourceService>();
         services.AddScoped<IDiagnosisService, RagDiagnosisService>();
