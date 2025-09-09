@@ -10,6 +10,30 @@ public static class ConfigurationEndpoints
     {
         var group = app.MapGroup("/configurations").WithTags("Configurations");
 
+        group.MapGet("", async (IConfigurationService configurationService) =>
+            {
+                var result = await configurationService.GetAllAsync();
+                return result.IsSuccessful
+                    ? Results.Ok(result.Value.Select(c => new
+                        { c.Guid, c.Name, c.Host, c.CreatedAt, Type = c.GetType().Name }))
+                    : Results.BadRequest(result.Error);
+            })
+            .WithName("GetConfigurations")
+            .Produces<IEnumerable<ConfigurationResponse>>()
+            .AddEndpointFilter<ApiKeyAuthenticationEndpointFilter>();
+
+        group.MapDelete("/{configGuid:guid}", async (IConfigurationService configurationService, Guid configGuid) =>
+            {
+                var config = await configurationService.GetByGuidAsync(configGuid);
+                if (config is null) return Results.NotFound();
+
+                var result = await configurationService.DeleteAsync(configGuid);
+                return result.IsSuccessful ? Results.NoContent() : Results.BadRequest(result.Error);
+            })
+            .WithName("RemoveConfiguration")
+            .Produces(StatusCodes.Status204NoContent)
+            .AddEndpointFilter<ApiKeyAuthenticationEndpointFilter>();
+
         group.MapGet("/{configGuid:guid}/knowledge-bases",
                 async (IConfigurationService configurationService, Guid configGuid) =>
                 {
