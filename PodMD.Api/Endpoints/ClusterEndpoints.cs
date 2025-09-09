@@ -15,7 +15,7 @@ public static class ClusterEndpoints
             {
                 var result = await clusterService.GetAllAsync();
                 return result.IsSuccessful
-                    ? Results.Ok(result.Value.Select(c => new { c.Guid, c.Name, c.Host }))
+                    ? Results.Ok(result.Value.Select(c => new { c.Guid, c.Name, c.Host, c.CreatedAt }))
                     : Results.BadRequest(result.Error);
             })
             .WithName("GetClusters")
@@ -27,7 +27,8 @@ public static class ClusterEndpoints
                 var result =
                     await clusterService.CreateAsync(request.Name, request.Host, request.Token, request.CaCertPem);
                 return result.IsSuccessful
-                    ? Results.Ok(new { result.Value.Guid, result.Value.Name, result.Value.Host })
+                    ? Results.Ok(
+                        new { result.Value.Guid, result.Value.Name, result.Value.Host, result.Value.CreatedAt })
                     : Results.BadRequest(result.Error);
             })
             .WithName("RegisterCluster")
@@ -44,7 +45,8 @@ public static class ClusterEndpoints
                         await clusterService.UpdateAsync(configGuid, request.Name, request.Host, request.Token,
                             request.CaCertPem);
                     return result.IsSuccessful
-                        ? Results.Ok(new { result.Value.Guid, result.Value.Name, result.Value.Host })
+                        ? Results.Ok(new
+                            { result.Value.Guid, result.Value.Name, result.Value.Host, result.Value.CreatedAt })
                         : Results.BadRequest(result.Error);
                 })
             .WithName("UpdateCluster")
