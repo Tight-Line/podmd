@@ -1,0 +1,58 @@
+# Build results
+bin/
+obj/
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# NuGet packages
+packages/
+
+# ASP.NET Core
+appsettings.Development.json
+appsettings.*.json
+
+# User secrets
+.microsoft/usersecrets/
+
+# Entity Framework Core
+*.db
+*.db-shm
+*.db-wal
+
+# Logs
+logs/
+*.log
+
+# Docker
+.dockerignore
+
+# Temporary files
+*.tmp
+*.temp
+
+# Test results
+TestResults/
+*.trx
+
+# Coverage
+coverage/
+*.coverage

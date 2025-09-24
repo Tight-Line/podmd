@@ -1,0 +1,41 @@
+services:
+  podmd-api:
+    build:
+      context: .
+      dockerfile: src/PodMD.Api/Dockerfile
+    ports:
+      - "8080:80"
+      - "8443:443"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:80
+      - Database__ConnectionString=Server=mysql;Port=3306;Database=PodMD_Dev;User=root;Password=password;
+      - Jwt__Secret=development-jwt-secret-key-change-in-production-environment
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - podmd-network
+
+  mysql:
+    image: mysql:8.0
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: PodMD
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+    networks:
+      - podmd-network
+
+volumes:
+  mysql_data:
+
+networks:
+  podmd-network:
+    driver: bridge

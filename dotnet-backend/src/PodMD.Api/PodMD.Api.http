@@ -1,0 +1,6 @@
+@PodMD.Api_HostAddress = http://localhost:5198
+
+GET {{PodMD.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
