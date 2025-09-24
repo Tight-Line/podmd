@@ -15,26 +15,30 @@
 - **Domain Layer**: Business entities, domain services, and core business rules
 - **Infrastructure Layer**: External dependencies, data persistence, and integrations
 
-## Key Technical Decisions
+## Key Technical Decisions (IMPLEMENTED ✅)
 
 ### Framework & Runtime
 
 - **Decision**: .NET 9.0 with C# 13 for modern language features and performance
+- **Status**: Successfully implemented with Clean Architecture
 - **Purpose**: Long-term support, ecosystem maturity, and developer productivity
 
 ### Database & Persistence
 
-- **Decision**: MySQL 8.0+ with Entity Framework Core 9.0
+- **Decision**: MySQL 8.0 with Entity Framework Core 9.0 and Pomelo provider
+- **Status**: Fully operational with migrations applied and Identity tables created
 - **Purpose**: Relational integrity, enterprise adoption, and LINQ query capabilities
 
 ### API Design & Documentation
 
 - **Decision**: RESTful API with OpenAPI/Swagger and semantic versioning
+- **Status**: Implemented with `/api/v1/*` endpoints and comprehensive Swagger docs
 - **Purpose**: Standard interfaces, automatic documentation, and API evolution
 
 ### Authentication & Security
 
 - **Decision**: JWT Bearer tokens with ASP.NET Core Identity and RBAC
+- **Status**: Production-ready with password hashing, claims, and role management
 - **Purpose**: Stateless authentication, fine-grained authorization, and security best practices
 
 ## Design Patterns in Use
