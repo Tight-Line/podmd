@@ -13,15 +13,18 @@ PodMD is a **Web API service** that automates troubleshooting for failed Kuberne
 
 ### In Scope (Initial Release)
 
+- Full-stack web application with React/Vue.js frontend
 - Web API service with Kubernetes/Jenkins/GitLab integrations
-- Simple web UI for source management (clusters, CI/CD connections)
+- User authentication and role-based access control
+- Comprehensive web UI for log analysis and source management
+- Interactive dashboards
 - Credential storage, RBAC, and audit logging
 - Knowledge bases with RAG integration
 - Structured analysis responses and async orchestration
 
 ### Out of Scope (Initial Release)
 
-- Rich web UI features (real-time streaming, advanced dashboards)
+- Mobile applications (iOS/Android)
 - Long-term log archival or automatic remediation
 - Additional CI/CD providers beyond Jenkins/GitLab
 - Advanced observability or cost controls

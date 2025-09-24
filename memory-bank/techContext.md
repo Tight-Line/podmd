@@ -2,7 +2,7 @@
 
 ## Technologies Used
 
-### Core Framework
+### Backend Framework
 
 - **.NET 9.0** with **C# 13** - Modern language features, performance, ecosystem
 - **ASP.NET Core Web API** - RESTful API framework with controllers and routing
@@ -13,6 +13,16 @@
 
 - **JWT Bearer Authentication** - Stateless token-based security
 - **ASP.NET Core Identity** - User management with password hashing and claims
+
+### Frontend Framework
+
+- **Vue.js 3** with **Composition API** - Reactive UI framework for modern web apps
+- **PrimeVue 4** - Rich component library for Vue.js
+- **TypeScript** - Type-safe JavaScript for better development experience
+- **Vite** - Fast build tool and development server
+- **Pinia** - Intuitive state management for Vue
+- **Vue Router** - Official routing library for Vue.js
+- **Tailwind CSS 4** - Utility-first CSS framework for rapid UI development
 
 ### Testing & Quality
 

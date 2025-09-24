@@ -116,6 +116,23 @@
 4. **Response Formatting**: Consistent error response format returned to client
 5. **Monitoring Alert**: Critical errors trigger monitoring alerts
 
+## Frontend-Backend Integration
+
+### API Communication
+
+- **Decision**: RESTful API consumption with axios and centralized API client
+- **Purpose**: Consistent API calls, error handling, and request/response interceptors
+
+### State Management
+
+- **Decision**: Pinia stores with composition API for reactive state
+- **Purpose**: Predictable state updates and component reactivity
+
+### Authentication Flow
+
+- **Decision**: JWT token storage in localStorage with automatic refresh
+- **Purpose**: Secure session management and seamless user experience
+
 ## Cross-Cutting Concerns
 
 ### Logging Strategy

@@ -33,4 +33,4 @@ PodMD addresses the critical need for intelligent, automated troubleshooting in 
 - AI-powered analysis with RAG-enhanced recommendations
 - Secure credential management with encryption and RBAC
 - REST API with OpenAPI documentation and async processing
-- Simple web UI for source management and analysis
+- Full-stack web application
