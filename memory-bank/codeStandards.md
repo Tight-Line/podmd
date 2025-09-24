@@ -96,6 +96,73 @@ Organize by solution, projects, and feature/layer folders. Clear boundaries betw
 | `src/ProjectName.Shared/`                      | Shared utilities, helpers, constants            |
 | `tests/`                                       | Unit and integration tests                      |
 
+### Build Configuration (Directory.Build.props)
+
+- Use `Directory.Build.props` in the solution root for common build settings.
+- Define shared properties like `TargetFramework`, `LangVersion`, and `Nullable`.
+- Configure common compiler warnings and code analysis rules.
+- Include SonarAnalyzer for enhanced code quality analysis.
+- Set assembly information (company, copyright, version).
+- Define conditional compilation symbols if needed.
+- Include common `Using` directives to reduce imports.
+- Enable Container Orchestrator Support for Docker Compose project setup (Visual Studio).
+- For VS Code: Manually create docker-compose.yml following the same service orchestration patterns.
+
+### Package Version Management (Directory.Packages.props)
+
+- Use `Directory.Packages.props` in the solution root for centralized package version management.
+- Define all NuGet package versions in `<PackageVersion>` elements.
+- Reference packages without version numbers in individual `.csproj` files.
+- Update versions in one place for the entire solution.
+- Include version ranges for patch-level updates (e.g., `[9.0.0, 10.0.0)`).
+- Document version constraints and update policies.
+
+### .gitignore Standards
+
+- Include standard .NET ignores: `bin/`, `obj/`, `.vs/`, `packages/`
+- Ignore `appsettings.Development.json` and other environment-specific secret files
+- Ignore User Secrets: `.microsoft/usersecrets/`
+- Ignore IDE files: `.vscode/`, `*.user`, `*.suo`
+- Ignore OS files: `.DS_Store`, `Thumbs.db`
+- Ignore build artifacts and temporary files
+- Document any custom ignore rules in comments
+
+### Configuration File Standards
+
+- **Commit `appsettings.json`** with default values or placeholders for all configuration keys.
+- **Ignore `appsettings.Development.json`** in `.gitignore` to prevent committing local secrets.
+- **Use User Secrets** or environment variables for local development secrets and sensitive data.
+- **Use `appsettings.{Environment}.json`** for environment-specific overrides.
+- **Document all configuration keys** in comments or separate documentation.
+
+### Configuration Standards (Options Pattern)
+
+- Use `IOptions<T>`, `IOptionsSnapshot<T>`, or `IOptionsMonitor<T>` for configuration access.
+- Define configuration classes in `Application/Configuration/` or `Api/Configuration/`.
+- Use `IOptions<T>` for singleton configurations loaded at startup.
+- Use `IOptionsSnapshot<T>` for configurations that can change per request.
+- Use `IOptionsMonitor<T>` for configurations that change and need callbacks.
+- Validate configuration on startup using `IOptions<T>.Value` in `Program.cs`.
+- Name configuration sections clearly (e.g., `JwtSettings`, `DatabaseSettings`).
+- Bind configuration using `builder.Configuration.GetSection("SectionName").Get<T>()`.
+
+### DTO Standards (Records for Requests/Responses)
+
+- Use `record` types for all request and response DTOs.
+- Prefer positional records for simple DTOs: `public record CreateUserRequest(string Name, string Email);`
+- Use immutable records to ensure data integrity during transfer.
+- Records provide value-based equality and built-in deconstruction.
+- Place DTOs in `Application/DTOs/` or `Api/DTOs/` folders.
+
+### Security Standards
+
+- **Never leak sensitive information** in logs, error messages, or API responses.
+- Avoid logging passwords, API keys, tokens, or personal data.
+- Use structured logging with sensitive data redaction.
+- Return generic error messages to clients (avoid exposing internal system details).
+- Implement proper input validation and sanitization.
+- Use HTTPS in production environments.
+
 ### Additional Guidance
 
 - Keep `Program.cs` minimal; move configuration to `Configuration/`.
@@ -145,10 +212,23 @@ Organize by solution, projects, and feature/layer folders. Clear boundaries betw
 - Encrypt sensitive fields (e.g., passwords, API keys) at the application level.
 - Never store secrets in plaintext.
 
+### Identity & User Management Standards
+
+- Create sealed `ApplicationUser` class that extends `IdentityUser` for custom user properties.
+- Use `IdentityDbContext<ApplicationUser>` or inherit from it for user management database context.
+- Register Identity services with `builder.Services.AddIdentity<ApplicationUser, IdentityRole>()`.
+- Configure Identity stores with `AddEntityFrameworkStores<ApplicationDbContext>()`.
+- Use `UserManager<ApplicationUser>` for all user management operations (create, update, delete, password validation).
+- Identity tables (AspNetUsers, AspNetRoles, etc.) follow the same naming and migration standards.
+- Initially create "Admin" and "Member" roles in the database migration or startup seeding.
+
 ### EF Core Configuration
 
 - Entity configurations in `Infrastructure/Persistence/Configurations/`.
 - Avoid coupling domain entities directly to EF Core; use shadow properties if needed.
+- Configure DbContext with `options.UseMySql()` using Pomelo.EntityFrameworkCore.MySql provider.
+- Retrieve connection string from `IConfiguration` using `configuration.GetConnectionString("<db>")`.
+- Call `dbContext.Database.Migrate()` on application startup in Development environment only.
 
 ### Naming Conventions
 
