@@ -15,6 +15,15 @@ builder.Services
     .AddIdentityConfiguration()
     .AddJwtConfiguration(builder.Configuration);
 
+// Configure encryption settings
+builder.Services.Configure<PodMD.Application.Configuration.EncryptionSettings>(
+    builder.Configuration.GetSection(nameof(PodMD.Application.Configuration.EncryptionSettings)));
+
+// Register application services
+builder.Services.AddScoped<PodMD.Application.Services.EncryptionService>();
+builder.Services.AddScoped<PodMD.Application.Interfaces.IKubeClusterRepository, PodMD.Infrastructure.Repositories.KubeClusterRepository>();
+builder.Services.AddScoped<PodMD.Application.Interfaces.IKubeClusterService, PodMD.Application.Services.KubeClusterService>();
+
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 builder.Services.AddSwaggerGen();
