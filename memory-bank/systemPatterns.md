@@ -35,11 +35,24 @@
 - **Status**: Implemented with `/api/v1/*` endpoints and comprehensive Swagger docs
 - **Purpose**: Standard interfaces, automatic documentation, and API evolution
 
+### Error Handling & Responses
+
+- **Decision**: ProblemDetails (RFC 7807) for standardized error responses
+- **Status**: Implemented across all API endpoints with consistent formatting
+- **Purpose**: Standardized error communication and API compliance
+
 ### Authentication & Security
 
 - **Decision**: JWT Bearer tokens with ASP.NET Core Identity and RBAC
 - **Status**: Production-ready with password hashing, claims, and role management
 - **Purpose**: Stateless authentication, fine-grained authorization, and security best practices
+
+### Data Encryption & Security
+
+- **Decision**: AES-GCM encryption for sensitive data with Base64 encoding
+- **Status**: Implemented for Kubernetes bearer tokens with key versioning
+- **Purpose**: Secure storage of sensitive credentials and API keys
+- **Key Management**: Environment-based configuration with 32-byte keys
 
 ## Design Patterns in Use
 
