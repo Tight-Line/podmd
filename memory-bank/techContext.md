@@ -11,7 +11,7 @@
 
 ### Authentication & Security (IMPLEMENTED ✅)
 
-- **JWT Bearer Authentication** - Stateless token-based security
+- **JWT Bearer Authentication** - Stateless token-based security with Swagger UI support
 - **ASP.NET Core Identity** - User management with password hashing and claims
 - **Serilog** - Structured logging with JSON output
 

@@ -89,6 +89,7 @@
 - ASP.NET Core Identity integration
 - Password hashing and user management
 - Role-based authorization framework
+- Swagger JWT Bearer token support
 
 ### Database Layer: 9/10 ✅
 
