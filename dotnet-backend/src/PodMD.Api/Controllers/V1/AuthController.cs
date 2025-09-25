@@ -1,7 +1,10 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using PodMD.Application.Dtos;
+using PodMD.Application.Interfaces;
 using PodMD.Domain.Entities;
+using System.Security.Claims;
 
 namespace PodMD.Api.Controllers.V1;
 
@@ -11,13 +14,16 @@ public class AuthController : ControllerBase
 {
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly SignInManager<ApplicationUser> _signInManager;
+    private readonly IAuthService _authService;
 
     public AuthController(
         UserManager<ApplicationUser> userManager,
-        SignInManager<ApplicationUser> signInManager)
+        SignInManager<ApplicationUser> signInManager,
+        IAuthService authService)
     {
         _userManager = userManager;
         _signInManager = signInManager;
+        _authService = authService;
     }
 
     [HttpPost("register")]
@@ -61,7 +67,36 @@ public class AuthController : ControllerBase
             return Unauthorized();
         }
 
-        // TODO: Generate JWT token here
-        return Ok(new { Message = "Login successful", UserId = user.Id });
+        var token = await _authService.GenerateTokenAsync(user);
+        return Ok(token);
+    }
+
+    [HttpGet("me")]
+    [Authorize]
+    public async Task<IActionResult> GetMe()
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userId))
+        {
+            return Unauthorized();
+        }
+
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user == null)
+        {
+            return NotFound(new { Message = "User not found" });
+        }
+
+        var userDto = new UserDto
+        {
+            Id = user.Id,
+            FirstName = user.FirstName,
+            LastName = user.LastName,
+            Email = user.Email ?? string.Empty,
+            CreatedAt = user.CreatedAt,
+            UpdatedAt = user.UpdatedAt
+        };
+
+        return Ok(userDto);
     }
 }

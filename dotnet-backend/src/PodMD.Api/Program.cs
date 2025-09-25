@@ -17,16 +17,46 @@ builder.Services
 
 // Configure encryption settings
 builder.Services.Configure<PodMD.Application.Configuration.EncryptionSettings>(
-    builder.Configuration.GetSection(nameof(PodMD.Application.Configuration.EncryptionSettings)));
+    builder.Configuration.GetSection("Encryption"));
+
+// Configure jwt settings
+builder.Services.Configure<PodMD.Application.Configuration.JwtSettings>(
+    builder.Configuration.GetSection("Jwt"));
 
 // Register application services
 builder.Services.AddScoped<PodMD.Application.Services.EncryptionService>();
 builder.Services.AddScoped<PodMD.Application.Interfaces.IKubeClusterRepository, PodMD.Infrastructure.Repositories.KubeClusterRepository>();
 builder.Services.AddScoped<PodMD.Application.Interfaces.IKubeClusterService, PodMD.Application.Services.KubeClusterService>();
+builder.Services.AddScoped<PodMD.Application.Interfaces.IAuthService, PodMD.Application.Services.AuthService>();
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+    {
+        Description = "JWT Authorization header using the Bearer scheme. Enter 'Bearer' [space] and then your token in the text input below.",
+        Name = "Authorization",
+        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+        Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey,
+        Scheme = "Bearer"
+    });
+
+    c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+    {
+        {
+            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+            {
+                Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                {
+                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[] {}
+        }
+    });
+});
 
 // Add health checks
 builder.Services.AddHealthChecks()
