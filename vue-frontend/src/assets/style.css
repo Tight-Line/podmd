@@ -1,0 +1,45 @@
+@import "tailwindcss";
+@import "tailwindcss-primeui";
+
+/* Tight Line Software Corporate Colors */
+:root {
+  --color-tight-nav: rgb(5, 16, 30); /* #05101e */
+  --color-tight-blue: rgb(2, 117, 211); /* #0275d3 */
+  --color-tight-white: rgb(255, 255, 255); /* #ffffff */
+}
+
+@theme {
+  --color-tight-nav: rgb(5, 16, 30);
+  --color-tight-blue: rgb(2, 117, 211);
+  --color-tight-white: rgb(255, 255, 255);
+}
+
+@layer base {
+  html {
+    font-family: 'Inter', sans-serif;
+  }
+}
+
+@layer components {
+  .bg-tight-nav {
+    background-color: var(--color-tight-nav);
+  }
+  .bg-tight-blue {
+    background-color: var(--color-tight-blue);
+  }
+  .text-tight-white {
+    color: var(--color-tight-white);
+  }
+
+  .btn-primary {
+    @apply bg-tight-blue hover:bg-blue-700 text-tight-white font-medium py-2 px-4 rounded-md transition-colors;
+  }
+
+  .btn-secondary {
+    @apply bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-md transition-colors;
+  }
+
+  .card {
+    @apply bg-white rounded-lg shadow-md p-6;
+  }
+}
