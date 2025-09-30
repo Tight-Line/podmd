@@ -25,6 +25,10 @@ builder.Services.Configure<PodMD.Application.Configuration.EncryptionSettings>(
 builder.Services.Configure<PodMD.Application.Configuration.JwtSettings>(
     builder.Configuration.GetSection("Jwt"));
 
+// Configure LLM settings
+builder.Services.Configure<PodMD.Application.Configuration.LlmSettings>(
+    builder.Configuration.GetSection("LLM"));
+
 // Register application services
 builder.Services.AddScoped<PodMD.Application.Services.EncryptionService>();
 builder.Services.AddScoped<PodMD.Application.Interfaces.IKubeClusterRepository, PodMD.Infrastructure.Repositories.KubeClusterRepository>();
@@ -32,6 +36,8 @@ builder.Services.AddScoped<PodMD.Application.Interfaces.IKubeClusterService, Pod
 builder.Services.AddScoped<PodMD.Application.Interfaces.IKubeClientFactory, PodMD.Application.Services.KubeClientFactory>();
 builder.Services.AddScoped<PodMD.Application.Interfaces.IKubeLogService, PodMD.Application.Services.KubeLogService>();
 builder.Services.AddScoped<PodMD.Application.Interfaces.IAuthService, PodMD.Application.Services.AuthService>();
+builder.Services.AddScoped<PodMD.Application.Analysis.ILlmClient, PodMD.Infrastructure.Analysis.LlmClient>();
+builder.Services.AddScoped<PodMD.Application.Analysis.IAnalysisService, PodMD.Application.Analysis.AnalysisService>();
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
@@ -64,7 +70,8 @@ builder.Services.AddSwaggerGen(c =>
 
 // Add health checks
 builder.Services.AddHealthChecks()
-    .AddDbContextCheck<PodMD.Infrastructure.Persistence.ApplicationDbContext>();
+    .AddDbContextCheck<PodMD.Infrastructure.Persistence.ApplicationDbContext>()
+    .AddCheck<LlmHealthCheck>("LLM Service", Microsoft.Extensions.Diagnostics.HealthChecks.HealthStatus.Degraded);
 
 // Add CORS
 builder.Services.AddCors(options =>

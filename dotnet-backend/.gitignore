@@ -33,6 +33,12 @@ appsettings.*.json
 # User secrets
 .microsoft/usersecrets/
 
+# Environment files
+.env
+.env-*
+.env.*
+*.env
+
 # Entity Framework Core
 *.db
 *.db-shm

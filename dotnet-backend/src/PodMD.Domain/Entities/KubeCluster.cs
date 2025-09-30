@@ -25,6 +25,10 @@ public class KubeCluster
 
     public string? DefaultNamespace { get; set; }
 
+    public string? Instructions { get; set; }
+
+    public string? ResponseFormat { get; set; }
+
     [Required]
     public int KeyVersion { get; set; }
 
