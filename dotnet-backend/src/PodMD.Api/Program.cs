@@ -1,4 +1,6 @@
+using Microsoft.EntityFrameworkCore;
 using PodMD.Api.Configuration;
+using PodMD.Infrastructure.Persistence;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -27,6 +29,8 @@ builder.Services.Configure<PodMD.Application.Configuration.JwtSettings>(
 builder.Services.AddScoped<PodMD.Application.Services.EncryptionService>();
 builder.Services.AddScoped<PodMD.Application.Interfaces.IKubeClusterRepository, PodMD.Infrastructure.Repositories.KubeClusterRepository>();
 builder.Services.AddScoped<PodMD.Application.Interfaces.IKubeClusterService, PodMD.Application.Services.KubeClusterService>();
+builder.Services.AddScoped<PodMD.Application.Interfaces.IKubeClientFactory, PodMD.Application.Services.KubeClientFactory>();
+builder.Services.AddScoped<PodMD.Application.Interfaces.IKubeLogService, PodMD.Application.Services.KubeLogService>();
 builder.Services.AddScoped<PodMD.Application.Interfaces.IAuthService, PodMD.Application.Services.AuthService>();
 
 builder.Services.AddControllers();
@@ -74,6 +78,14 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+
+// Apply migrations in development
+if (app.Environment.IsDevelopment())
+{
+    using var scope = app.Services.CreateScope();
+    var dbContext = scope.ServiceProvider.GetRequiredService<PodMD.Infrastructure.Persistence.ApplicationDbContext>();
+    await dbContext.Database.MigrateAsync();
+}
 
 // Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())
