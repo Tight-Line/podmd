@@ -1,54 +1,3 @@
-<script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { useAuthStore } from '../stores/auth'
-import Button from 'primevue/button'
-import InputText from 'primevue/inputtext'
-import Password from 'primevue/password'
-import Card from 'primevue/card'
-import Message from 'primevue/message'
-
-const router = useRouter()
-const authStore = useAuthStore()
-
-const email = ref('')
-const password = ref('')
-const loading = ref(false)
-const errorMessage = ref('')
-
-onMounted(() => {
-  // If already authenticated, redirect to home
-  if (authStore.isAuthenticated) {
-    router.push('/')
-  }
-})
-
-const handleLogin = async () => {
-  if (!email.value || !password.value) {
-    errorMessage.value = 'Please enter both email and password'
-    return
-  }
-
-  loading.value = true
-  errorMessage.value = ''
-
-  try {
-    const success = await authStore.login(email.value, password.value)
-
-    if (success) {
-      router.push('/')
-    } else {
-      errorMessage.value = 'Invalid login credentials'
-    }
-  } catch (error) {
-    console.error('Login error:', error)
-    errorMessage.value = 'An error occurred during login'
-  } finally {
-    loading.value = false
-  }
-}
-</script>
-
 <template>
   <div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center p-4">
     <Card class="w-full max-w-md shadow-lg">
@@ -116,6 +65,57 @@ const handleLogin = async () => {
     </Card>
   </div>
 </template>
+
+<script setup lang="ts">
+import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { useAuthStore } from '../stores/auth'
+import Button from 'primevue/button'
+import InputText from 'primevue/inputtext'
+import Password from 'primevue/password'
+import Card from 'primevue/card'
+import Message from 'primevue/message'
+
+const router = useRouter()
+const authStore = useAuthStore()
+
+const email = ref('')
+const password = ref('')
+const loading = ref(false)
+const errorMessage = ref('')
+
+onMounted(() => {
+  // If already authenticated, redirect to home
+  if (authStore.isAuthenticated) {
+    router.push('/')
+  }
+})
+
+const handleLogin = async () => {
+  if (!email.value || !password.value) {
+    errorMessage.value = 'Please enter both email and password'
+    return
+  }
+
+  loading.value = true
+  errorMessage.value = ''
+
+  try {
+    const success = await authStore.login(email.value, password.value)
+
+    if (success) {
+      router.push('/')
+    } else {
+      errorMessage.value = 'Invalid login credentials'
+    }
+  } catch (error) {
+    console.error('Login error:', error)
+    errorMessage.value = 'An error occurred during login'
+  } finally {
+    loading.value = false
+  }
+}
+</script>
 
 <style scoped>
 /* Additional custom styles if needed */

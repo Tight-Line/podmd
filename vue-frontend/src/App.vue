@@ -1,15 +1,20 @@
-<script setup lang="ts">
-import { RouterView } from 'vue-router'
-</script>
-
 <template>
-  <div id="app" class="min-h-screen bg-gray-100">
-    <!-- Main content -->
-    <main class="flex-1">
+  <div id="app" class="min-h-screen">
+    <AppLayout v-if="authStore.isAuthenticated">
       <RouterView />
-    </main>
+    </AppLayout>
+
+    <RouterView v-else />
   </div>
 </template>
+
+<script setup lang="ts">
+import { RouterView } from 'vue-router'
+import { useAuthStore } from './stores/auth'
+import AppLayout from './components/AppLayout.vue'
+
+const authStore = useAuthStore()
+</script>
 
 <style scoped>
 #app {
