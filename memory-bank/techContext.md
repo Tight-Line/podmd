@@ -41,9 +41,10 @@
 - **PrimeVue 4** - Professional component library with Aura theme (@primeuix/themes)
 - **TypeScript 5.9** - Type-safe JavaScript with strict type checking
 - **Vite 7.1** - Fast build tool with Hot Module Replacement (HMR)
-- **Pinia** - Intuitive state management for Vue
+- **Pinia** - Intuitive state management for Vue with authentication store
 - **Tailwind CSS 4** - Configuration-free framework with @tailwindcss/vite plugin
-- **Vue Router** - Official routing library for Vue.js
+- **Vue Router** - Official routing library with navigation guards
+- **Axios** - HTTP client with global authentication interceptors
 
 ### Testing & Quality (PLANNED - Not Started)
 
