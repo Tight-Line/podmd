@@ -12,6 +12,7 @@ import PrimeVue from 'primevue/config'
 import { definePreset } from '@primeuix/themes'
 import Aura from '@primeuix/themes/aura'
 import ToastService from 'primevue/toastservice'
+import Tooltip from 'primevue/tooltip'
 
 const app = createApp(App)
 const pinia = createPinia()
@@ -46,6 +47,7 @@ axios.interceptors.response.use(
 
 app.use(pinia)
 app.use(router)
+app.directive('tooltip', Tooltip)
 
 const CustomPreset = definePreset(Aura, {
   semantic: {

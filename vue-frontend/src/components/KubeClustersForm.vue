@@ -17,6 +17,8 @@
         type="text"
         placeholder="production-k8s"
         fluid
+        :readonly="readOnly"
+        :class="{ 'bg-slate-50 text-slate-500': readOnly }"
       />
       <Message v-if="$form.name?.invalid" severity="error" size="small" variant="simple">
         {{ $form.name.error?.message }}
@@ -34,6 +36,8 @@
         type="text"
         placeholder="https://api.k8s.example.com:6443"
         fluid
+        :readonly="readOnly"
+        :class="{ 'bg-slate-50 text-slate-500': readOnly }"
       />
       <Message v-if="$form.server?.invalid" severity="error" size="small" variant="simple">
         {{ $form.server.error?.message }}
@@ -45,16 +49,28 @@
       <label for="bearerToken" class="block text-sm font-medium text-slate-700 mb-1">
         Bearer Token
       </label>
-      <Textarea
-        id="bearerToken"
-        name="bearerToken"
-        placeholder="Enter your Kubernetes service account token"
-        rows="3"
-        fluid
-      />
-      <Message v-if="$form.bearerToken?.invalid" severity="error" size="small" variant="simple">
-        {{ $form.bearerToken.error?.message }}
-      </Message>
+
+      <!-- Show input field when editing, status badge when reading -->
+      <div v-if="readOnly">
+        <span
+          :class="initialValues.hasBearerToken ? 'text-green-600 bg-green-100' : 'text-slate-400 bg-slate-100'"
+          class="px-3 py-2 rounded-md text-sm font-medium"
+        >
+          {{ initialValues.hasBearerToken ? 'Token Set' : 'No Token' }}
+        </span>
+      </div>
+      <div v-else>
+        <Textarea
+          id="bearerToken"
+          name="bearerToken"
+          placeholder="Enter your Kubernetes service account token"
+          rows="3"
+          fluid
+        />
+        <Message v-if="$form.bearerToken?.invalid" severity="error" size="small" variant="simple">
+          {{ $form.bearerToken.error?.message }}
+        </Message>
+      </div>
     </div>
 
     <!-- Certificate Authority PEM -->
@@ -62,13 +78,25 @@
       <label for="certificateAuthorityPem" class="block text-sm font-medium text-slate-700 mb-1">
         Certificate Authority PEM
       </label>
-      <Textarea
-        id="certificateAuthorityPem"
-        name="certificateAuthorityPem"
-        placeholder="Enter CA certificate in PEM format"
-        rows="3"
-        fluid
-      />
+
+      <!-- Show status badge when reading, input field when editing -->
+      <div v-if="readOnly">
+        <span
+          :class="initialValues.hasCertificateAuthority ? 'text-green-600 bg-green-100' : 'text-slate-400 bg-slate-100'"
+          class="px-3 py-2 rounded-md text-sm font-medium"
+        >
+          {{ initialValues.hasCertificateAuthority ? 'Certificate Set' : 'No Certificate' }}
+        </span>
+      </div>
+      <div v-else>
+        <Textarea
+          id="certificateAuthorityPem"
+          name="certificateAuthorityPem"
+          placeholder="Enter CA certificate in PEM format"
+          rows="3"
+          fluid
+        />
+      </div>
     </div>
 
     <!-- Insecure Skip TLS Verify -->
@@ -77,6 +105,7 @@
         id="insecureSkipTlsVerify"
         name="insecureSkipTlsVerify"
         binary
+        :disabled="readOnly"
       />
       <label for="insecureSkipTlsVerify" class="ml-2 text-sm text-slate-700">
         Skip TLS verification (not recommended for production)
@@ -94,24 +123,29 @@
         type="text"
         placeholder="default"
         fluid
+        :readonly="readOnly"
+        :class="{ 'bg-slate-50 text-slate-500': readOnly }"
       />
     </div>
 
-    <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-slate-200">
+    <!-- Show buttons when editing and not read-only -->
+    <div v-if="isEditing && !readOnly" class="flex justify-end gap-3 mt-6 pt-4 border-t border-slate-200">
+      <!-- Only show cancel when creating (in dialog) -->
       <Button
+        v-if="!visible"
         type="button"
         @click="$emit('close-dialog')"
         label="Cancel"
-        size="small"
         class="hover:text-slate-800 hover:bg-slate-100 border-slate-300"
+        size="small"
       />
       <Button
         type="submit"
         :loading="saving"
-        :label="isEditing ? 'Update Cluster' : 'Create Cluster'"
+        :label="visible ? 'Save' : 'Create Cluster'"
         icon="pi pi-save"
-        size="small"
         class="hover:text-slate-800 hover:bg-slate-100 border-slate-300"
+        size="small"
       />
     </div>
   </Form>
@@ -130,8 +164,9 @@ import Button from 'primevue/button'
 import { computed } from 'vue'
 
 const props = defineProps<{
-  visible: boolean
+  visible?: boolean
   isEditing: boolean
+  readOnly?: boolean
   initialValues: Record<string, unknown>
   saving: boolean
 }>()

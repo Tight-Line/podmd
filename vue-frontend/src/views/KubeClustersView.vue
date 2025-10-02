@@ -1,62 +1,107 @@
 <template>
-  <div>
-    <!-- Page Content -->
-    <div class="w-full py-8 px-6">
-      <div class="max-w-7xl mx-auto">
-        <!-- Page Header -->
-        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-          <div>
-            <h1 class="text-2xl font-bold text-slate-900">Kubernetes Clusters</h1>
-            <p class="text-slate-600 mt-1">Manage your configured Kubernetes clusters</p>
-          </div>
-          <Button
-            @click="openCreateDialog"
-            icon="pi pi-plus"
-            label="Add Cluster"
-            class="hover:text-slate-800 hover:bg-slate-100 border-slate-300"
-          />
-        </div>
-
-        <!-- Clusters DataTable -->
-        <KubeClustersTable
-          :clusters="clusters"
-          :loading="loading"
-          @edit-cluster="openEditDialog"
-          @delete-cluster="openDeleteDialog"
-        />
-
-        <!-- Empty State -->
-        <div v-if="!loading && clusters.length === 0" class="text-center py-12">
-          <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <i class="pi pi-server text-slate-400 text-2xl"></i>
-          </div>
-          <h3 class="text-lg font-medium text-slate-900 mb-2">No clusters configured</h3>
-          <p class="text-slate-600 mb-6">Get started by adding your first Kubernetes cluster.</p>
-          <Button
-            @click="openCreateDialog"
-            icon="pi pi-plus"
-            label="Add Your First Cluster"
-            class="hover:text-slate-800 hover:bg-slate-100 border-slate-300"
-          />
-        </div>
+  <div class="h-screen flex flex-col">
+    <!-- Page Header -->
+    <div class="flex justify-between items-center px-6 py-4 bg-white border-b border-slate-200">
+      <div>
+        <h1 class="text-2xl font-bold text-slate-900">Kubernetes Clusters</h1>
+        <p class="text-slate-600 mt-1">Manage your configured Kubernetes clusters</p>
       </div>
+      <Button
+        @click="openCreateDialog"
+        icon="pi pi-plus"
+        label="Add Cluster"
+        severity="primary"
+      />
     </div>
 
-    <!-- Kube Cluster Form Dialog -->
+    <!-- Main Content - Split Panel -->
+    <div class="flex-1 overflow-hidden">
+      <Splitter :minSizes="[25, 35]" :gutterSize="8" class="h-full">
+        <!-- Left Panel - Cluster List -->
+        <SplitterPanel :size="30" :minSize="25">
+          <div class="h-full bg-white border-r border-slate-200">
+            <KubeClustersList
+              :clusters="clusters"
+              :loading="loading"
+              :selected-cluster="selectedCluster"
+              @select-cluster="selectCluster"
+              @add-cluster="openCreateDialog"
+              @delete-cluster="openDeleteDialog"
+            />
+          </div>
+        </SplitterPanel>
+
+        <!-- Right Panel - Cluster Details -->
+        <SplitterPanel :size="70" :minSize="35">
+          <div class="h-full bg-white">
+            <div v-if="selectedCluster || isCreating" class="h-full">
+              <div class="p-4 border-b border-slate-200 flex items-center justify-between">
+                <h2 class="text-lg font-semibold text-slate-900">
+                  {{ isCreating ? 'Create Cluster' : isEditing ? 'Edit Cluster' : 'Cluster Details' }}
+                </h2>
+                <div v-if="!isEditing && !isCreating" class="flex gap-2">
+                  <Button
+                    @click="startEdit"
+                    icon="pi pi-pencil"
+                    label="Edit"
+                    severity="secondary"
+                    size="small"
+                  />
+                </div>
+                <div v-if="isEditing || isCreating" class="flex gap-2">
+                  <Button
+                    @click="cancelEdit"
+                    label="Cancel"
+                    severity="secondary"
+                    size="small"
+                  />
+                </div>
+              </div>
+              <div class="p-4 overflow-auto">
+                <KubeClustersForm
+                  v-if="selectedCluster || isCreating"
+                  :key="selectedCluster?.id || 'creating'"
+                  :visible="true"
+                  :initial-values="formData"
+                  :is-editing="isEditing || isCreating"
+                  :read-only="!isEditing && !isCreating"
+                  :saving="saving"
+                  @save-cluster="handleFormSave"
+                />
+              </div>
+            </div>
+            <div v-else class="h-full flex items-center justify-center">
+              <div class="text-center">
+                <i class="pi pi-server text-slate-400 text-4xl mb-4 block"></i>
+                <h3 class="text-lg font-medium text-slate-900 mb-2">Select a cluster to view details</h3>
+                <p class="text-slate-600">Choose a cluster from the left panel to see its configuration</p>
+              </div>
+            </div>
+          </div>
+        </SplitterPanel>
+      </Splitter>
+    </div>
+
+    <!-- Create Cluster Dialog -->
     <Dialog
-      v-model:visible="clusterDialogVisible"
-      :header="isEditing ? 'Edit Cluster' : 'Add New Cluster'"
+      v-model:visible="createDialogVisible"
+      header="Create New Cluster"
       modal
       :style="{ width: '600px' }"
       :closable="true"
     >
       <KubeClustersForm
-        :visible="clusterDialogVisible"
-        :is-editing="isEditing"
-        :initial-values="initialValues"
+        :is-editing="true"
         :saving="saving"
-        @save-cluster="handleSaveCluster"
-        @close-dialog="closeDialog"
+        :initial-values="{
+          name: '',
+          server: '',
+          bearerToken: '',
+          certificateAuthorityPem: '',
+          insecureSkipTlsVerify: false,
+          defaultNamespace: ''
+        }"
+        @save-cluster="handleCreateCluster"
       />
     </Dialog>
 
@@ -99,27 +144,18 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useToast } from 'primevue/usetoast'
 import Dialog from 'primevue/dialog'
+import Splitter from 'primevue/splitter'
+import SplitterPanel from 'primevue/splitterpanel'
 import Button from 'primevue/button'
-import KubeClustersTable from '../components/KubeClustersTable.vue'
-import KubeClustersForm from '../components/KubeClustersForm.vue'
 import type { KubeClusterResponse, CreateKubeClusterRequest, UpdateKubeClusterRequest } from '../api/Api'
 import { authenticatedApi } from '../api/authenticatedApi'
+import KubeClustersForm from '../components/KubeClustersForm.vue'
+import KubeClustersList from '../components/KubeClustersList.vue'
 
 const toast = useToast()
-
-// Reactive form data for PrimeVue Forms
-const initialValues = reactive({
-  id: undefined as string | undefined,
-  name: '',
-  server: '',
-  bearerToken: '',
-  certificateAuthorityPem: '',
-  insecureSkipTlsVerify: false,
-  defaultNamespace: ''
-})
 
 // State
 const clusters = ref<KubeClusterResponse[]>([])
@@ -127,23 +163,41 @@ const loading = ref(false)
 const saving = ref(false)
 const deleting = ref(false)
 
-// Dialogs
-const clusterDialogVisible = ref(false)
-const deleteDialogVisible = ref(false)
+// Split panel state
+const selectedCluster = ref<KubeClusterResponse | null>(null)
 const isEditing = ref(false)
-const clusterToDelete = ref<KubeClusterResponse | null>(null)
-const originalClusterData = ref<KubeClusterResponse | null>(null)
+const isCreating = ref(false)
 
-// Form reset for PrimeVue Forms
-const resetFormData = () => {
-  initialValues.id = undefined
-  initialValues.name = ''
-  initialValues.server = ''
-  initialValues.bearerToken = ''
-  initialValues.certificateAuthorityPem = ''
-  initialValues.insecureSkipTlsVerify = false
-  initialValues.defaultNamespace = ''
-}
+// Form data for right panel
+const formData = computed(() => {
+  if (selectedCluster.value) {
+    return {
+      name: selectedCluster.value.name || '',
+      server: selectedCluster.value.server || '',
+      bearerToken: '', // Can't populate for security
+      certificateAuthorityPem: '', // Can't populate for security
+      insecureSkipTlsVerify: Boolean(selectedCluster.value.insecureSkipTlsVerify),
+      defaultNamespace: selectedCluster.value.defaultNamespace || '',
+      hasBearerToken: Boolean(selectedCluster.value.hasBearerToken),
+      hasCertificateAuthority: Boolean(selectedCluster.value.hasCertificateAuthority)
+    }
+  }
+  return {
+    name: '',
+    server: '',
+    bearerToken: '',
+    certificateAuthorityPem: '',
+    insecureSkipTlsVerify: false,
+    defaultNamespace: '',
+    hasBearerToken: false,
+    hasCertificateAuthority: false
+  }
+})
+
+// Dialogs
+const createDialogVisible = ref(false)
+const deleteDialogVisible = ref(false)
+const clusterToDelete = ref<KubeClusterResponse | null>(null)
 
 // Data fetching
 const fetchClusters = async () => {
@@ -151,6 +205,11 @@ const fetchClusters = async () => {
   try {
     const response = await authenticatedApi.api.v1ClustersList({})
     clusters.value = response.data || []
+
+    // Auto-select first cluster if available
+    if (clusters.value.length > 0 && !selectedCluster.value) {
+      selectedCluster.value = clusters.value[0]
+    }
   } catch {
     toast.add({
       severity: 'error',
@@ -163,35 +222,28 @@ const fetchClusters = async () => {
   }
 }
 
-// Dialog actions
-const openCreateDialog = () => {
-  resetFormData()
+// Cluster selection
+const selectCluster = (cluster: KubeClusterResponse) => {
+  selectedCluster.value = cluster
   isEditing.value = false
-  clusterDialogVisible.value = true
+  isCreating.value = false
 }
 
-const openEditDialog = (cluster: KubeClusterResponse) => {
-  // Store original cluster data for comparison during update
-  originalClusterData.value = { ...cluster }
-
-  // Reset form data first
-  resetFormData()
-
-  // Populate with cluster data for editing
-  initialValues.id = cluster.id || undefined
-  initialValues.name = cluster.name || ''
-  initialValues.server = cluster.server || ''
-  initialValues.bearerToken = cluster.hasBearerToken ? '' : '' // Can't populate for security
-  initialValues.certificateAuthorityPem = cluster.hasCertificateAuthority ? '' : '' // Can't populate for security
-  initialValues.insecureSkipTlsVerify = Boolean(cluster.insecureSkipTlsVerify)
-  initialValues.defaultNamespace = cluster.defaultNamespace || ''
-
+// Edit mode toggles
+const startEdit = () => {
   isEditing.value = true
-  clusterDialogVisible.value = true
 }
 
-const closeDialog = () => {
-  clusterDialogVisible.value = false
+const cancelEdit = () => {
+  isEditing.value = false
+  isCreating.value = false
+}
+
+
+
+
+const openCreateDialog = () => {
+  createDialogVisible.value = true
 }
 
 const openDeleteDialog = (cluster: KubeClusterResponse) => {
@@ -204,52 +256,41 @@ const closeDeleteDialog = () => {
   clusterToDelete.value = null
 }
 
-// CRUD operations - PrimeVue Forms submit event
-const handleSaveCluster = async ({ valid, values }: { valid: boolean, values: Record<string, unknown> }) => {
+const handleCreateCluster = async ({ valid, values }: { valid: boolean, values: Record<string, unknown> }) => {
   if (!valid) return
   saving.value = true
 
+  // Track existing cluster IDs before creation
+  const existingIds = new Set(clusters.value.map(c => c.id))
+
   try {
-    // Clean and trim the values
-    const processedValues: Record<string, unknown> = {}
-    if (values.name) processedValues.name = String(values.name).trim()
-    if (values.server) processedValues.server = String(values.server).trim()
-    if (values.bearerToken) processedValues.bearerToken = String(values.bearerToken).trim()
-    if (values.certificateAuthorityPem) processedValues.certificateAuthorityPem = String(values.certificateAuthorityPem).trim()
-    if (values.insecureSkipTlsVerify !== undefined) processedValues.insecureSkipTlsVerify = Boolean(values.insecureSkipTlsVerify)
-    if (values.defaultNamespace) processedValues.defaultNamespace = String(values.defaultNamespace).trim()
-
-    if (isEditing.value && initialValues.id) {
-      // For updates, only send fields that have values (partial update)
-      const updateData: Partial<UpdateKubeClusterRequest> = {}
-
-      if (processedValues.name) updateData.name = processedValues.name as string
-      if (processedValues.server) updateData.server = processedValues.server as string
-      if (processedValues.bearerToken) updateData.bearerToken = processedValues.bearerToken as string
-      if (processedValues.certificateAuthorityPem) updateData.certificateAuthorityPem = processedValues.certificateAuthorityPem as string
-      if (processedValues.insecureSkipTlsVerify !== undefined) updateData.insecureSkipTlsVerify = processedValues.insecureSkipTlsVerify as boolean
-      if (processedValues.defaultNamespace) updateData.defaultNamespace = processedValues.defaultNamespace as string
-
-      await authenticatedApi.api.v1ClustersUpdate(initialValues.id, updateData, {})
-      toast.add({
-        severity: 'success',
-        summary: 'Success',
-        detail: 'Cluster updated successfully',
-        life: 3000
-      })
-    } else {
-      // For create, all required fields must be present (handled by validation)
-      await authenticatedApi.api.v1ClustersCreate(processedValues as CreateKubeClusterRequest, {})
-      toast.add({
-        severity: 'success',
-        summary: 'Success',
-        detail: 'Cluster created successfully',
-        life: 3000
-      })
+    const createData: CreateKubeClusterRequest = {
+      name: String(values.name).trim(),
+      server: String(values.server).trim(),
+      bearerToken: String(values.bearerToken).trim(),
+      certificateAuthorityPem: values.certificateAuthorityPem ? String(values.certificateAuthorityPem).trim() : undefined,
+      insecureSkipTlsVerify: Boolean(values.insecureSkipTlsVerify),
+      defaultNamespace: values.defaultNamespace ? String(values.defaultNamespace).trim() : undefined
     }
 
-    closeDialog()
+    await authenticatedApi.api.v1ClustersCreate(createData, {})
+    toast.add({
+      severity: 'success',
+      summary: 'Success',
+      detail: 'Cluster created successfully',
+      life: 3000
+    })
+
+    createDialogVisible.value = false
     await fetchClusters()
+
+    // Auto-select the newly created cluster (find cluster not in existing IDs)
+    const newCluster = clusters.value.find(cluster => cluster.id && !existingIds.has(cluster.id))
+    if (newCluster) {
+      selectedCluster.value = newCluster
+      isEditing.value = false
+      isCreating.value = false
+    }
   } catch (error: unknown) {
     const err = error as { response?: { data?: { detail?: string } } }
     toast.add({
@@ -262,6 +303,67 @@ const handleSaveCluster = async ({ valid, values }: { valid: boolean, values: Re
     saving.value = false
   }
 }
+
+// Form save handlers
+const handleFormSave = async ({ valid, values }: { valid: boolean, values: Record<string, unknown> }) => {
+  if (!valid) return
+
+  if (isCreating.value && !selectedCluster.value) {
+    // Handle inline cluster creation in split panel
+    return await handleCreateCluster({ valid, values })
+  } else if (selectedCluster.value && isEditing.value) {
+    // Update existing cluster
+    saving.value = true
+    try {
+      const updateData: Partial<UpdateKubeClusterRequest> = {}
+      if (values.name && String(values.name).trim() !== selectedCluster.value.name) {
+        updateData.name = String(values.name).trim()
+      }
+      if (values.server && String(values.server).trim() !== selectedCluster.value.server) {
+        updateData.server = String(values.server).trim()
+      }
+      if (values.bearerToken && String(values.bearerToken).trim()) {
+        updateData.bearerToken = String(values.bearerToken).trim()
+      }
+      if (values.certificateAuthorityPem && String(values.certificateAuthorityPem).trim()) {
+        updateData.certificateAuthorityPem = String(values.certificateAuthorityPem).trim()
+      }
+      if (values.insecureSkipTlsVerify !== undefined && Boolean(values.insecureSkipTlsVerify) !== Boolean(selectedCluster.value.insecureSkipTlsVerify)) {
+        updateData.insecureSkipTlsVerify = Boolean(values.insecureSkipTlsVerify)
+      }
+      if (values.defaultNamespace !== undefined) {
+        const newNamespace = String(values.defaultNamespace).trim()
+        if (newNamespace !== (selectedCluster.value.defaultNamespace || '')) {
+          updateData.defaultNamespace = newNamespace || undefined
+        }
+      }
+
+      if (Object.keys(updateData).length > 0) {
+        await authenticatedApi.api.v1ClustersUpdate(selectedCluster.value.id!, updateData, {})
+        toast.add({
+          severity: 'success',
+          summary: 'Success',
+          detail: 'Cluster updated successfully',
+          life: 3000
+        })
+        await fetchClusters()
+      }
+
+      isEditing.value = false
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { detail?: string } } }
+      toast.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: err?.response?.data?.detail || 'Failed to save cluster',
+        life: 5000
+      })
+    } finally {
+      saving.value = false
+    }
+  }
+}
+
 
 const deleteCluster = async () => {
   if (!clusterToDelete.value) return
@@ -276,6 +378,12 @@ const deleteCluster = async () => {
       detail: 'Cluster deleted successfully',
       life: 3000
     })
+
+    // If deleted cluster was selected, deselect it
+    if (selectedCluster.value?.id === clusterToDelete.value.id) {
+      selectedCluster.value = clusters.value.length > 1 ? clusters.value.find(c => c.id !== clusterToDelete.value!.id) || null : null
+    }
+
     closeDeleteDialog()
     await fetchClusters()
   } catch (error: unknown) {
@@ -291,7 +399,6 @@ const deleteCluster = async () => {
   }
 }
 
-// Lifecycle
 onMounted(() => {
   fetchClusters()
 })
