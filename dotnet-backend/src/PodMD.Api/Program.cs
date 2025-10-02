@@ -33,6 +33,8 @@ builder.Services.Configure<PodMD.Application.Configuration.LlmSettings>(
 builder.Services.AddScoped<PodMD.Application.Services.EncryptionService>();
 builder.Services.AddScoped<PodMD.Application.Interfaces.IKubeClusterRepository, PodMD.Infrastructure.Repositories.KubeClusterRepository>();
 builder.Services.AddScoped<PodMD.Application.Interfaces.IKubeClusterService, PodMD.Application.Services.KubeClusterService>();
+builder.Services.AddScoped<PodMD.Application.Interfaces.IJenkinsServersRepository, PodMD.Infrastructure.Repositories.JenkinsServersRepository>();
+builder.Services.AddScoped<PodMD.Application.Interfaces.IJenkinsServersService, PodMD.Application.Services.JenkinsServersService>();
 builder.Services.AddScoped<PodMD.Application.Interfaces.IKubeClientFactory, PodMD.Application.Services.KubeClientFactory>();
 builder.Services.AddScoped<PodMD.Application.Interfaces.IKubeLogService, PodMD.Application.Services.KubeLogService>();
 builder.Services.AddScoped<PodMD.Application.Interfaces.IAuthService, PodMD.Application.Services.AuthService>();

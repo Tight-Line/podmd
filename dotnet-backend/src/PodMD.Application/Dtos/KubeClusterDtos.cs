@@ -2,43 +2,69 @@ using System.ComponentModel.DataAnnotations;
 
 namespace PodMD.Application.Dtos;
 
-public record CreateKubeClusterRequest(
-    [Required]
-    [StringLength(100)]
-    string Name,
+public record CreateKubeClusterRequest : SourceCreateDto
+{
+    public CreateKubeClusterRequest(
+        string Name,
+        string Server,
+        string? Instructions,
+        string? ResponseFormat,
+        string BearerToken,
+        string? CertificateAuthorityPem,
+        bool InsecureSkipTlsVerify,
+        string? DefaultNamespace)
+        : base(Name, Server, Instructions, ResponseFormat)
+    {
+        this.BearerToken = BearerToken;
+        this.CertificateAuthorityPem = CertificateAuthorityPem;
+        this.InsecureSkipTlsVerify = InsecureSkipTlsVerify;
+        this.DefaultNamespace = DefaultNamespace;
+    }
 
-    [Required]
-    [Url]
-    string Server,
+    public string BearerToken { get; init; } = string.Empty;
 
-    [Required]
-    string BearerToken,
+    public string? CertificateAuthorityPem { get; init; }
 
-    string? CertificateAuthorityPem,
+    public bool InsecureSkipTlsVerify { get; init; }
 
-    [Required]
-    bool InsecureSkipTlsVerify,
-
-    string? DefaultNamespace
-);
+    public string? DefaultNamespace { get; init; }
+}
 
 public record UpdateKubeClusterRequest(
     string? Name,
     string? Server,
+    string? Instructions,
+    string? ResponseFormat,
     string? BearerToken,
     string? CertificateAuthorityPem,
     bool? InsecureSkipTlsVerify,
     string? DefaultNamespace
 );
 
-public record KubeClusterResponse(
-    Guid Id,
-    string Name,
-    string Server,
-    bool HasBearerToken,
-    bool HasCertificateAuthority,
-    bool InsecureSkipTlsVerify,
-    string? DefaultNamespace,
-    DateTime CreatedAt,
-    DateTime UpdatedAt
-);
+public record KubeClusterResponse : SourceReadDto
+{
+    public KubeClusterResponse(
+        SourceReadDto source,
+        bool HasCertificateAuthority,
+        bool InsecureSkipTlsVerify,
+        string? DefaultNamespace)
+        : base(
+            source.Id,
+            source.Name,
+            source.Type,
+            source.Server,
+            source.Instructions,
+            source.ResponseFormat,
+            source.CreatedAt,
+            source.UpdatedAt)
+    {
+        this.HasCertificateAuthority = HasCertificateAuthority;
+        this.InsecureSkipTlsVerify = InsecureSkipTlsVerify;
+        this.DefaultNamespace = DefaultNamespace;
+    }
+
+    public bool HasBearerToken => true; // Always true since bearer token exists but is encrypted
+    public bool HasCertificateAuthority { get; init; }
+    public bool InsecureSkipTlsVerify { get; init; }
+    public string? DefaultNamespace { get; init; }
+}

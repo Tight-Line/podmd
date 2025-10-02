@@ -19,11 +19,7 @@ public class KubeClusterRepository : IKubeClusterRepository
         return await _context.KubeClusters.FindAsync(id);
     }
 
-    public async Task<KubeCluster?> GetByNameAsync(string name)
-    {
-        return await _context.KubeClusters
-            .FirstOrDefaultAsync(c => c.Name == name);
-    }
+
 
     public async Task<IEnumerable<KubeCluster>> GetAllAsync()
     {
@@ -54,15 +50,5 @@ public class KubeClusterRepository : IKubeClusterRepository
     public async Task<bool> ExistsAsync(Guid id)
     {
         return await _context.KubeClusters.AnyAsync(c => c.Id == id);
-    }
-
-    public async Task<bool> NameExistsAsync(string name, Guid? excludeId = null)
-    {
-        var query = _context.KubeClusters.Where(c => c.Name == name);
-        if (excludeId.HasValue)
-        {
-            query = query.Where(c => c.Id != excludeId.Value);
-        }
-        return await query.AnyAsync();
     }
 }

@@ -19,31 +19,23 @@ public class KubeClusterService : IKubeClusterService
 
     public async Task<KubeClusterResponse> CreateAsync(CreateKubeClusterRequest request)
     {
-        // Validate name uniqueness
-        if (await _repository.NameExistsAsync(request.Name))
-        {
-            throw new InvalidOperationException($"A cluster with the name '{request.Name}' already exists.");
-        }
-
         // Validate HTTPS URL
-        if (!Uri.TryCreate(request.Server, UriKind.Absolute, out var uri) ||
-            uri.Scheme != Uri.UriSchemeHttps)
-        {
-            throw new InvalidOperationException("Server must be a valid HTTPS URL.");
-        }
+        ValidationHelper.ValidateHttpsUrl(request.Server);
 
         // Encrypt the bearer token
         var encryptedToken = _encryptionService.Encrypt(request.BearerToken);
 
         var cluster = new KubeCluster
         {
-            Id = Guid.NewGuid(),
+            Type = "Kubernetes", // Explicit type for TPT inheritance
             Name = request.Name,
             Server = request.Server,
             BearerTokenEnc = encryptedToken,
             CertificateAuthorityPem = request.CertificateAuthorityPem,
             InsecureSkipTlsVerify = request.InsecureSkipTlsVerify,
             DefaultNamespace = request.DefaultNamespace,
+            Instructions = request.Instructions,
+            ResponseFormat = request.ResponseFormat,
             KeyVersion = 1, // Current key version
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
@@ -74,24 +66,10 @@ public class KubeClusterService : IKubeClusterService
             throw new KeyNotFoundException($"Cluster with ID '{id}' not found.");
         }
 
-        // Validate name uniqueness if name is being changed
-        if (!string.IsNullOrEmpty(request.Name) && request.Name != cluster.Name)
-        {
-            if (await _repository.NameExistsAsync(request.Name, id))
-            {
-                throw new InvalidOperationException($"A cluster with the name '{request.Name}' already exists.");
-            }
-            cluster.Name = request.Name;
-        }
-
         // Validate HTTPS URL if server is being changed
         if (!string.IsNullOrEmpty(request.Server))
         {
-            if (!Uri.TryCreate(request.Server, UriKind.Absolute, out var uri) ||
-                uri.Scheme != Uri.UriSchemeHttps)
-            {
-                throw new InvalidOperationException("Server must be a valid HTTPS URL.");
-            }
+            ValidationHelper.ValidateHttpsUrl(request.Server);
             cluster.Server = request.Server;
         }
 
@@ -102,6 +80,11 @@ public class KubeClusterService : IKubeClusterService
         }
 
         // Update other fields
+        if (!string.IsNullOrEmpty(request.Name))
+        {
+            cluster.Name = request.Name;
+        }
+
         if (request.CertificateAuthorityPem != null)
         {
             cluster.CertificateAuthorityPem = request.CertificateAuthorityPem;
@@ -115,6 +98,16 @@ public class KubeClusterService : IKubeClusterService
         if (request.DefaultNamespace != null)
         {
             cluster.DefaultNamespace = request.DefaultNamespace;
+        }
+
+        if (request.Instructions != null)
+        {
+            cluster.Instructions = request.Instructions;
+        }
+
+        if (request.ResponseFormat != null)
+        {
+            cluster.ResponseFormat = request.ResponseFormat;
         }
 
         cluster.UpdatedAt = DateTime.UtcNow;
@@ -137,16 +130,22 @@ public class KubeClusterService : IKubeClusterService
 
     private static KubeClusterResponse MapToResponse(KubeCluster cluster)
     {
-        return new KubeClusterResponse(
+        var sourceDto = new SourceReadDto(
             cluster.Id,
             cluster.Name,
+            cluster.Type,
             cluster.Server,
-            !string.IsNullOrEmpty(cluster.BearerTokenEnc), // HasBearerToken
-            !string.IsNullOrEmpty(cluster.CertificateAuthorityPem), // HasCertificateAuthority
-            cluster.InsecureSkipTlsVerify,
-            cluster.DefaultNamespace,
+            cluster.Instructions,
+            cluster.ResponseFormat,
             cluster.CreatedAt,
             cluster.UpdatedAt
+        );
+
+        return new KubeClusterResponse(
+            sourceDto,
+            !string.IsNullOrEmpty(cluster.CertificateAuthorityPem), // HasCertificateAuthority
+            cluster.InsecureSkipTlsVerify,
+            cluster.DefaultNamespace
         );
     }
 }

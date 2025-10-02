@@ -12,6 +12,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     }
 
     public DbSet<KubeCluster> KubeClusters { get; set; }
+    public DbSet<JenkinsServers> JenkinsServers { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -20,17 +21,22 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
         // Apply configurations
         builder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
 
-        // Configure KubeCluster entity
-        builder.Entity<KubeCluster>(entity =>
-        {
-            entity.HasKey(e => e.Id);
-            entity.Property(e => e.Name).HasMaxLength(100).IsRequired();
-            entity.HasIndex(e => e.Name).IsUnique();
-            entity.Property(e => e.Server).IsRequired();
-            entity.Property(e => e.BearerTokenEnc).IsRequired();
-            entity.Property(e => e.KeyVersion).IsRequired();
-            entity.Property(e => e.CreatedAt).IsRequired();
-            entity.Property(e => e.UpdatedAt).IsRequired();
-        });
+        // Configure TPT inheritance for Source hierarchy
+        builder.Entity<Source>().HasKey(s => s.Id);
+        builder.Entity<Source>().Property(s => s.Type).HasMaxLength(50).IsRequired();
+        builder.Entity<Source>().Property(s => s.Name).HasMaxLength(100).IsRequired();
+        builder.Entity<Source>().Property(s => s.Server).IsRequired();
+        builder.Entity<Source>().Property(s => s.KeyVersion).IsRequired();
+        builder.Entity<Source>().Property(s => s.CreatedAt).IsRequired();
+        builder.Entity<Source>().Property(s => s.UpdatedAt).IsRequired();
+        builder.Entity<Source>().ToTable("Sources");
+
+        builder.Entity<KubeCluster>().ToTable("KubeClusters");
+        builder.Entity<KubeCluster>().Property(c => c.BearerTokenEnc).IsRequired();
+        builder.Entity<KubeCluster>().Property(c => c.InsecureSkipTlsVerify).IsRequired();
+
+        builder.Entity<JenkinsServers>().ToTable("JenkinsServers");
+        builder.Entity<JenkinsServers>().Property(s => s.Username).HasMaxLength(100).IsRequired();
+        builder.Entity<JenkinsServers>().Property(s => s.ApiTokenEnc).IsRequired();
     }
 }
