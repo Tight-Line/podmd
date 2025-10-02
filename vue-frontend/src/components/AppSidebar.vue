@@ -1,6 +1,6 @@
 <template>
   <!-- Sidebar -->
-  <aside class="w-64 bg-tight-nav shadow-lg flex flex-col h-full overflow-hidden">
+  <aside class="w-48 bg-tight-nav shadow-lg flex flex-col h-full overflow-hidden">
     <!-- Top Section -->
     <div class="p-6 flex-shrink-0">
       <h2 class="text-xl font-bold text-tight-white mb-8">
@@ -15,6 +15,15 @@
         >
           <i class="pi pi-home mr-3"></i>
           Dashboard
+        </router-link>
+
+        <router-link
+          to="/kube-clusters"
+          class="flex items-center px-4 py-3 text-slate-300 hover:text-white hover:bg-slate-700 rounded-lg transition-colors"
+          :class="{ 'bg-slate-700 text-white': route.name === 'kube-clusters' }"
+        >
+          <i class="pi pi-server mr-3"></i>
+          Clusters
         </router-link>
       </nav>
     </div>

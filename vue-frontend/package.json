@@ -17,7 +17,10 @@
   },
   "dependencies": {
     "@primeuix/themes": "^1.2.5",
+    "@primevue/forms": "^4.3.9",
     "@tailwindcss/vite": "^4.1.13",
+    "@vuelidate/core": "^2.0.3",
+    "@vuelidate/validators": "^2.0.4",
     "axios": "^1.12.2",
     "pinia": "^3.0.3",
     "primeflex": "^4.0.0",
@@ -25,8 +28,10 @@
     "primevue": "^4.3.9",
     "tailwindcss": "^4.1.13",
     "tailwindcss-primeui": "^0.6.1",
+    "vee-validate": "^4.15.1",
     "vue": "^3.5.22",
-    "vue-router": "^4.5.1"
+    "vue-router": "^4.5.1",
+    "zod": "^4.1.11"
   },
   "devDependencies": {
     "@tsconfig/node22": "^22.0.2",
