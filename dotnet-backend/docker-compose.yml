@@ -18,9 +18,8 @@ services:
     image: mysql:8.0
     ports:
       - "3306:3306"
-    environment:
-      MYSQL_ROOT_PASSWORD: password
-      MYSQL_DATABASE: PodMD
+    env_file:
+      - dev.env
     volumes:
       - mysql_data:/var/lib/mysql
     healthcheck:
@@ -30,8 +29,27 @@ services:
     networks:
       - podmd-network
 
+  minio:
+    image: minio/minio:latest
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    env_file:
+      - dev.env
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - podmd-network
+
 volumes:
   mysql_data:
+  minio_data:
 
 networks:
   podmd-network:

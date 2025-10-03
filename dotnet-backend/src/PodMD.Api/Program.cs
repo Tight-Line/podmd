@@ -29,6 +29,10 @@ builder.Services.Configure<PodMD.Application.Configuration.JwtSettings>(
 builder.Services.Configure<PodMD.Application.Configuration.LlmSettings>(
     builder.Configuration.GetSection("LLM"));
 
+// Configure MinIO settings
+builder.Services.Configure<PodMD.Application.Configuration.MinioSettings>(
+    builder.Configuration.GetSection("MinIO"));
+
 // Register application services
 builder.Services.AddScoped<PodMD.Application.Services.EncryptionService>();
 builder.Services.AddScoped<PodMD.Application.Interfaces.IKubeClusterRepository, PodMD.Infrastructure.Repositories.KubeClusterRepository>();
@@ -42,6 +46,11 @@ builder.Services.AddScoped<PodMD.Application.Interfaces.IKubeLogService, PodMD.A
 builder.Services.AddScoped<PodMD.Application.Interfaces.IAuthService, PodMD.Application.Services.AuthService>();
 builder.Services.AddScoped<PodMD.Application.Analysis.ILlmClient, PodMD.Infrastructure.Analysis.LlmClient>();
 builder.Services.AddScoped<PodMD.Application.Analysis.IAnalysisService, PodMD.Application.Analysis.AnalysisService>();
+
+// File storage services
+builder.Services.AddScoped<PodMD.Domain.Interfaces.IFileStorage, PodMD.Application.Services.MinioFileStorage>();
+builder.Services.AddScoped<PodMD.Application.Interfaces.IKnowledgeFileRepository, PodMD.Infrastructure.Repositories.KnowledgeFileRepository>();
+builder.Services.AddScoped<PodMD.Application.Interfaces.IKnowledgeFileService, PodMD.Application.Services.KnowledgeFileService>();
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();

@@ -14,6 +14,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<KubeCluster> KubeClusters { get; set; }
     public DbSet<JenkinsServers> JenkinsServers { get; set; }
     public DbSet<KnowledgeBase> KnowledgeBases { get; set; }
+    public DbSet<KnowledgeFile> KnowledgeFiles { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -53,5 +54,28 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             .HasMany(kb => kb.Sources)
             .WithMany(s => s.KnowledgeBases)
             .UsingEntity(j => j.ToTable("KnowledgeBaseSource"));
+
+        // Configure KnowledgeFile entity
+        builder.Entity<KnowledgeFile>().ToTable("KnowledgeFiles");
+        builder.Entity<KnowledgeFile>().Property(kf => kf.FileName).HasMaxLength(255).IsRequired();
+        builder.Entity<KnowledgeFile>().Property(kf => kf.StorageKey).HasMaxLength(500).IsRequired();
+        builder.Entity<KnowledgeFile>().Property(kf => kf.ContentType).HasMaxLength(100).IsRequired();
+        builder.Entity<KnowledgeFile>().Property(kf => kf.FileSize).IsRequired();
+        builder.Entity<KnowledgeFile>().Property(kf => kf.CreatedAt).IsRequired();
+        builder.Entity<KnowledgeFile>().Property(kf => kf.UpdatedAt).IsRequired();
+        builder.Entity<KnowledgeFile>().Property(kf => kf.IsDeleted).IsRequired().HasDefaultValue(false);
+
+        // Foreign key to KnowledgeBase with CASCADE delete
+        builder.Entity<KnowledgeFile>()
+            .HasOne(kf => kf.KnowledgeBase)
+            .WithMany()
+            .HasForeignKey(kf => kf.KnowledgeBaseId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // Unique constraint: only one non-deleted file with same name per KnowledgeBase
+        builder.Entity<KnowledgeFile>()
+            .HasIndex(kf => new { kf.KnowledgeBaseId, kf.FileName })
+            .IsUnique()
+            .HasFilter("[IsDeleted] = 0");
     }
 }
