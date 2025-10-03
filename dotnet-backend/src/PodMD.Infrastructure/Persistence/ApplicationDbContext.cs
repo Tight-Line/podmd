@@ -13,6 +13,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
 
     public DbSet<KubeCluster> KubeClusters { get; set; }
     public DbSet<JenkinsServers> JenkinsServers { get; set; }
+    public DbSet<KnowledgeBase> KnowledgeBases { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -38,5 +39,19 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
         builder.Entity<JenkinsServers>().ToTable("JenkinsServers");
         builder.Entity<JenkinsServers>().Property(s => s.Username).HasMaxLength(100).IsRequired();
         builder.Entity<JenkinsServers>().Property(s => s.ApiTokenEnc).IsRequired();
+
+        // Configure KnowledgeBase entity
+        builder.Entity<KnowledgeBase>().ToTable("KnowledgeBases");
+        builder.Entity<KnowledgeBase>().Property(kb => kb.Name).HasMaxLength(100).IsRequired();
+        builder.Entity<KnowledgeBase>().Property(kb => kb.Description).HasMaxLength(1000);
+        builder.Entity<KnowledgeBase>().Property(kb => kb.CreatedAt).IsRequired();
+        builder.Entity<KnowledgeBase>().Property(kb => kb.UpdatedAt).IsRequired();
+
+        // Configure many-to-many relationship between KnowledgeBase and Source
+        // EF Core will automatically create the KnowledgeBaseSource junction table
+        builder.Entity<KnowledgeBase>()
+            .HasMany(kb => kb.Sources)
+            .WithMany(s => s.KnowledgeBases)
+            .UsingEntity(j => j.ToTable("KnowledgeBaseSource"));
     }
 }

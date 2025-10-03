@@ -30,4 +30,7 @@ public class Source
 
     [Required]
     public DateTime UpdatedAt { get; set; }
+
+    // Many-to-many navigation property
+    public ICollection<KnowledgeBase> KnowledgeBases { get; set; } = new List<KnowledgeBase>();
 }

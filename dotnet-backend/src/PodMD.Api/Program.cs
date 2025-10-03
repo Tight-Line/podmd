@@ -35,6 +35,8 @@ builder.Services.AddScoped<PodMD.Application.Interfaces.IKubeClusterRepository, 
 builder.Services.AddScoped<PodMD.Application.Interfaces.IKubeClusterService, PodMD.Application.Services.KubeClusterService>();
 builder.Services.AddScoped<PodMD.Application.Interfaces.IJenkinsServersRepository, PodMD.Infrastructure.Repositories.JenkinsServersRepository>();
 builder.Services.AddScoped<PodMD.Application.Interfaces.IJenkinsServersService, PodMD.Application.Services.JenkinsServersService>();
+builder.Services.AddScoped<PodMD.Application.Interfaces.IKnowledgeBasesRepository, PodMD.Infrastructure.Repositories.KnowledgeBasesRepository>();
+builder.Services.AddScoped<PodMD.Application.Interfaces.IKnowledgeBasesService, PodMD.Application.Services.KnowledgeBasesService>();
 builder.Services.AddScoped<PodMD.Application.Interfaces.IKubeClientFactory, PodMD.Application.Services.KubeClientFactory>();
 builder.Services.AddScoped<PodMD.Application.Interfaces.IKubeLogService, PodMD.Application.Services.KubeLogService>();
 builder.Services.AddScoped<PodMD.Application.Interfaces.IAuthService, PodMD.Application.Services.AuthService>();
