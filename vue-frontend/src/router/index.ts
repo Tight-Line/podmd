@@ -3,6 +3,7 @@ import { useAuthStore } from '../stores/auth'
 import HomeView from '../views/HomeView.vue'
 import LoginView from '../views/LoginView.vue'
 import KubeClustersView from '../views/KubeClustersView.vue'
+import JenkinsServersView from '../views/JenkinsServersView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -22,6 +23,12 @@ const router = createRouter({
       path: '/kube-clusters',
       name: 'kube-clusters',
       component: KubeClustersView,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/jenkins-servers',
+      name: 'jenkins-servers',
+      component: JenkinsServersView,
       meta: { requiresAuth: true },
     },
   ],

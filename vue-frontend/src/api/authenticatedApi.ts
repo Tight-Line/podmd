@@ -7,7 +7,7 @@ import { Api } from './Api'
  * for all backend API calls that require authentication.
  */
 const authenticatedApi = new Api({
-  baseURL: import.meta.env.VITE_API_BASE_URL,
+  baseUrl: import.meta.env.VITE_API_BASE_URL,
   securityWorker: () => {
     const authToken = localStorage.getItem('auth_token')
     if (authToken) {

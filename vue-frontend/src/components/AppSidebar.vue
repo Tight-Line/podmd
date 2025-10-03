@@ -25,6 +25,15 @@
           <i class="pi pi-server mr-3"></i>
           Clusters
         </router-link>
+
+        <router-link
+          to="/jenkins-servers"
+          class="flex items-center px-4 py-3 text-slate-300 hover:text-white hover:bg-slate-700 rounded-lg transition-colors"
+          :class="{ 'bg-slate-700 text-white': route.name === 'jenkins-servers' }"
+        >
+          <i class="pi pi-cog mr-3"></i>
+          Jenkins Servers
+        </router-link>
       </nav>
     </div>
 

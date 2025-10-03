@@ -1,11 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { Api } from '../api/Api'
-
-interface AuthResponse {
-  token: string
-  expiration: string
-}
+import { Api, ContentType } from '../api/Api'
 
 export const useAuthStore = defineStore('auth', () => {
   const token = ref<string | null>(null)
@@ -22,27 +17,35 @@ export const useAuthStore = defineStore('auth', () => {
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
       const api = new Api({
-        baseURL: import.meta.env.VITE_API_BASE_URL,
+        baseUrl: import.meta.env.VITE_API_BASE_URL,
       })
-      const loginRequest = {
-        email,
-        password
-      }
 
-      const response = await api.api.v1AuthLoginCreate(loginRequest)
+      // Manually add login method since swagger generation skipped auth endpoints
+      const loginMethod = (request: { email: string, password: string }) =>
+        api.request({
+          path: `/api/v1/Auth/login`,
+          method: "POST",
+          body: request,
+          type: ContentType.Json,
+          format: "json",
+        })
 
-      if (response.status === 200) {
-        // Parse the response data (assuming axios response has data property)
-        const authData: AuthResponse = response.data as unknown as AuthResponse
-        token.value = authData.token
-        localStorage.setItem('auth_token', authData.token)
+      const response = await loginMethod({
+        email: email,
+        password: password
+      })
 
+      if (response.status === 200 && response.data && response.data.token) {
+        token.value = response.data.token
+        localStorage.setItem('auth_token', response.data.token)
+        console.log('Login successful, token stored')
         return true
       }
 
+      console.log('Login failed - no token in response')
       return false
     } catch (error) {
-      console.error('Login failed:', error)
+      console.error('Login exception:', error)
       token.value = null
       localStorage.removeItem('auth_token')
       return false

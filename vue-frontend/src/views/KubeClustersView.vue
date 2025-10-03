@@ -34,7 +34,7 @@
         <!-- Right Panel - Cluster Details -->
         <SplitterPanel :size="70" :minSize="35">
           <div class="h-full bg-white">
-            <div v-if="selectedCluster || isCreating" class="h-full">
+            <div v-if="selectedCluster || isCreating" class="h-full flex flex-col">
               <div class="p-4 border-b border-slate-200 flex items-center justify-between">
                 <h2 class="text-lg font-semibold text-slate-900">
                   {{ isCreating ? 'Create Cluster' : isEditing ? 'Edit Cluster' : 'Cluster Details' }}
@@ -57,7 +57,7 @@
                   />
                 </div>
               </div>
-              <div class="p-4 overflow-auto">
+              <div class="p-4 flex-1 overflow-auto">
                 <KubeClustersForm
                   v-if="selectedCluster || isCreating"
                   :key="selectedCluster?.id || 'creating'"
@@ -208,7 +208,7 @@ const fetchClusters = async () => {
 
     // Auto-select first cluster if available
     if (clusters.value.length > 0 && !selectedCluster.value) {
-      selectedCluster.value = clusters.value[0]
+      selectedCluster.value = clusters.value[0]!
     }
   } catch {
     toast.add({

@@ -9,19 +9,15 @@ public record CreateJenkinsServersRequest : SourceCreateDto
     string Server,
     string? Instructions,
     string? ResponseFormat,
-    string Username,
-    string ApiToken)
+    [Required][StringLength(100)] string Username,
+    [Required] string ApiToken)
         : base(Name, Server, Instructions, ResponseFormat)
     {
         this.Username = Username;
         this.ApiToken = ApiToken;
     }
 
-    [Required]
-    [StringLength(100)]
     public string Username { get; init; } = string.Empty;
-
-    [Required]
     public string ApiToken { get; init; } = string.Empty; // Before encryption
 }
 
