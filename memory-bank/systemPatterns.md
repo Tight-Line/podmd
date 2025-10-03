@@ -50,9 +50,24 @@
 ### Data Encryption & Security
 
 - **Decision**: AES-GCM encryption for sensitive data with Base64 encoding
-- **Status**: Implemented for Kubernetes bearer tokens with key versioning
+- **Status**: Implemented for Kubernetes bearer tokens and Jenkins API tokens with key versioning
 - **Purpose**: Secure storage of sensitive credentials and API keys
 - **Key Management**: Environment-based configuration with 32-byte keys
+
+### Multi-Source Architecture
+
+- **Decision**: Extensible source type system with base Source entity and TPT inheritance
+- **Status**: Successfully implemented for Kubernetes and Jenkins sources
+- **Purpose**: Support multiple CI/CD platforms with consistent management
+- **Pattern**: Table-Per-Type (TPT) inheritance providing separate tables for optimal queries
+- **Benefits**: Zero-breaking expansion, type-safe discrimination, and query performance
+
+### Inheritance Patterns
+
+- **Decision**: Entity Framework Core Table-Per-Type (TPT) for multi-table inheritance
+- **Status**: Configured with proper foreign key relationships and cascade deletion
+- **Purpose**: Scalable entity hierarchies with separate physical tables
+- **Benefits**: Superior query performance and cleaner separation of concerns
 
 ## Design Patterns in Use
 
