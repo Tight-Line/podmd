@@ -1,189 +1,188 @@
 <template>
-  <div class="h-full flex flex-col">
+  <div class="flex-1 flex flex-col">
     <!-- Scrollable Form Content -->
     <div class="flex-1 overflow-y-auto">
       <div class="space-y-6 pb-4">
-        <!-- Basic Information -->
-        <div class="space-y-4">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <!-- Name Field -->
-            <div class="space-y-2">
-              <label for="name" class="block text-sm font-medium text-slate-700">
-                Server Name <span class="text-red-500">*</span>
-              </label>
-              <InputText
-                id="name"
-                v-model="formData.name"
-                :disabled="!isEditing"
-                :class="{ 'p-invalid': validationErrors.name }"
-                placeholder="e.g., Production Jenkins"
-                class="w-full"
-              />
-              <small v-if="validationErrors.name" class="p-error">
-                {{ validationErrors.name }}
-              </small>
-            </div>
-
-            <!-- Server URL Field -->
-            <div class="space-y-2">
-              <label for="server" class="block text-sm font-medium text-slate-700">
-                Server URL <span class="text-red-500">*</span>
-              </label>
-              <InputText
-                id="server"
-                v-model="formData.server"
-                :disabled="!isEditing"
-                :class="{ 'p-invalid': validationErrors.server }"
-                placeholder="https://jenkins.company.com"
-                class="w-full"
-              />
-              <small v-if="validationErrors.server" class="p-error">
-                {{ validationErrors.server }}
-              </small>
-            </div>
-          </div>
-        </div>
-
-        <Divider />
-
-        <!-- Authentication -->
-        <div class="space-y-4">
-          <!-- Username and API Token in same line -->
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <!-- Username Field -->
-            <div class="flex flex-col gap-1">
-              <label for="username" class="block text-sm font-medium text-slate-700">
-                Username <span class="text-red-500">*</span>
-              </label>
-              <InputText
-                id="username"
-                v-model="formData.username"
-                :disabled="!isEditing"
-                :class="{ 'p-invalid': validationErrors.username }"
-                placeholder="jenkins_user"
-                class="w-full"
-              />
-              <small v-if="validationErrors.username" class="p-error">
-                {{ validationErrors.username }}
-              </small>
-            </div>
-
-            <!-- API Token Field - Only show when editing -->
-            <div v-if="!readOnly" class="flex flex-col gap-1">
-              <label for="apiToken" class="block text-sm font-medium text-slate-700">
-                API Token <span class="text-red-500">*</span>
-                <span v-if="isEditing && hasExistingToken" class="text-amber-600 text-xs">(leave empty to keep current)</span>
-              </label>
-              <Password
-                id="apiToken"
-                v-model="formData.apiToken"
-                :disabled="!isEditing"
-                :class="{ 'p-invalid': validationErrors.apiToken }"
-                placeholder="Enter API token"
-                :toggleMask="true"
-                :feedback="false"
-                class="w-full"
-                inputClass="w-full"
-              />
-              <small v-if="validationErrors.apiToken" class="p-error">
-                {{ validationErrors.apiToken }}
-              </small>
-              <small class="text-slate-500 text-xs mt-1">
-                Generate an API token from Jenkins user settings
-              </small>
-            </div>
-          </div>
-        </div>
-
-        <Divider />
-
-        <!-- Configuration -->
-        <div class="space-y-4">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <!-- Instructions Field -->
-            <div class="space-y-2">
-              <label for="instructions" class="block text-sm font-medium text-slate-700">
-                Instructions
-              </label>
-              <InputGroup v-if="isEditing">
-                <Textarea
-                  id="instructions"
-                  v-model="formData.instructions"
-                  :disabled="!isEditing"
-                  rows="5"
-                  placeholder="Optional instructions for log analysis..."
-                  class="border-r-0 rounded-r-none"
-                  style="flex: 1;"
-                />
-                <InputGroupAddon>
-                  <Button
-                    icon="pi pi-window-maximize"
-                    severity="secondary"
-                    size="small"
-                    text
-                    @click="openExpandDialog('instructions', 'Instructions')"
-                    v-tooltip="'Expand for more space'"
+            <!-- Basic Information -->
+            <div class="space-y-4">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Name Field -->
+                <div class="space-y-2">
+                  <label for="name" class="block text-sm font-medium text-slate-700">
+                    Server Name <span class="text-red-500">*</span>
+                  </label>
+                  <InputText
+                    id="name"
+                    v-model="formData.name"
+                    :disabled="!isEditing"
+                    :class="{ 'p-invalid': validationErrors.name }"
+                    placeholder="e.g., Production Jenkins"
+                    class="w-full"
                   />
-                </InputGroupAddon>
-              </InputGroup>
-              <Textarea
-                v-else
-                id="instructions"
-                v-model="formData.instructions"
-                :disabled="!isEditing"
-                rows="5"
-                placeholder="Optional instructions for log analysis..."
-                class="w-full"
-              />
-              <small class="text-slate-500 text-xs">
-                Instructions for AI analysis of Jenkins logs from this server
-              </small>
+                  <small v-if="validationErrors.name" class="p-error">
+                    {{ validationErrors.name }}
+                  </small>
+                </div>
+
+                <!-- Server URL Field -->
+                <div class="space-y-2">
+                  <label for="server" class="block text-sm font-medium text-slate-700">
+                    Server URL <span class="text-red-500">*</span>
+                  </label>
+                  <InputText
+                    id="server"
+                    v-model="formData.server"
+                    :disabled="!isEditing"
+                    :class="{ 'p-invalid': validationErrors.server }"
+                    placeholder="https://jenkins.company.com"
+                    class="w-full"
+                  />
+                  <small v-if="validationErrors.server" class="p-error">
+                    {{ validationErrors.server }}
+                  </small>
+                </div>
+              </div>
             </div>
 
-            <!-- Response Format Field -->
-            <div class="space-y-2">
-              <label for="responseFormat" class="block text-sm font-medium text-slate-700">
-                Response Format
-              </label>
-              <InputGroup v-if="isEditing">
-                <Textarea
-                  id="responseFormat"
-                  v-model="formData.responseFormat"
-                  :disabled="!isEditing"
-                  rows="5"
-                  placeholder="Optional format for analysis responses..."
-                  class="border-r-0 rounded-r-none"
-                  style="flex: 1;"
-                />
-                <InputGroupAddon>
-                  <Button
-                    icon="pi pi-window-maximize"
-                    severity="secondary"
-                    size="small"
-                    text
-                    @click="openExpandDialog('responseFormat', 'Response Format')"
-                    v-tooltip="'Expand for more space'"
+            <Divider />
+
+            <!-- Authentication -->
+            <div class="space-y-4">
+              <!-- Username and API Token in same line -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Username Field -->
+                <div class="flex flex-col gap-1">
+                  <label for="username" class="block text-sm font-medium text-slate-700">
+                    Username <span class="text-red-500">*</span>
+                  </label>
+                  <InputText
+                    id="username"
+                    v-model="formData.username"
+                    :disabled="!isEditing"
+                    :class="{ 'p-invalid': validationErrors.username }"
+                    placeholder="jenkins_user"
+                    class="w-full"
                   />
-                </InputGroupAddon>
-              </InputGroup>
-              <Textarea
-                v-else
-                id="responseFormat"
-                v-model="formData.responseFormat"
-                :disabled="!isEditing"
-                rows="5"
-                placeholder="Optional format for analysis responses..."
-                class="w-full"
-              />
-              <small class="text-slate-500 text-xs">
-                Expected response format for AI analysis results
-              </small>
+                  <small v-if="validationErrors.username" class="p-error">
+                    {{ validationErrors.username }}
+                  </small>
+                </div>
+
+                <!-- API Token Field - Only show when editing -->
+                <div v-if="!readOnly" class="flex flex-col gap-1">
+                  <label for="apiToken" class="block text-sm font-medium text-slate-700">
+                    API Token <span class="text-red-500">*</span>
+                    <span v-if="isEditing && hasExistingToken" class="text-amber-600 text-xs">(leave empty to keep current)</span>
+                  </label>
+                  <Password
+                    id="apiToken"
+                    v-model="formData.apiToken"
+                    :disabled="!isEditing"
+                    :class="{ 'p-invalid': validationErrors.apiToken }"
+                    placeholder="Enter API token"
+                    :toggleMask="true"
+                    :feedback="false"
+                    class="w-full"
+                    inputClass="w-full"
+                  />
+                  <small v-if="validationErrors.apiToken" class="p-error">
+                    {{ validationErrors.apiToken }}
+                  </small>
+                  <small class="text-slate-500 text-xs mt-1">
+                    Generate an API token from Jenkins user settings
+                  </small>
+                </div>
+              </div>
+            </div>
+
+            <Divider />
+
+            <!-- Configuration -->
+            <div class="space-y-4">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Instructions Field -->
+                <div class="space-y-2">
+                  <label for="instructions" class="block text-sm font-medium text-slate-700">
+                    Instructions
+                  </label>
+                  <InputGroup v-if="isEditing">
+                    <Textarea
+                      id="instructions"
+                      v-model="formData.instructions"
+                      :disabled="!isEditing"
+                      rows="5"
+                      placeholder="Optional instructions for log analysis..."
+                      class="border-r-0 rounded-r-none"
+                      style="flex: 1;"
+                    />
+                    <InputGroupAddon>
+                      <Button
+                        icon="pi pi-window-maximize"
+                        severity="secondary"
+                        size="small"
+                        text
+                        @click="openExpandDialog('instructions', 'Instructions')"
+                        v-tooltip="'Expand for more space'"
+                      />
+                    </InputGroupAddon>
+                  </InputGroup>
+                  <Textarea
+                    v-else
+                    id="instructions"
+                    v-model="formData.instructions"
+                    :disabled="!isEditing"
+                    rows="5"
+                    placeholder="Optional instructions for log analysis..."
+                    class="w-full"
+                  />
+                  <small class="text-slate-500 text-xs">
+                    Instructions for AI analysis of Jenkins logs from this server
+                  </small>
+                </div>
+
+                <!-- Response Format Field -->
+                <div class="space-y-2">
+                  <label for="responseFormat" class="block text-sm font-medium text-slate-700">
+                    Response Format
+                  </label>
+                  <InputGroup v-if="isEditing">
+                    <Textarea
+                      id="responseFormat"
+                      v-model="formData.responseFormat"
+                      :disabled="!isEditing"
+                      rows="5"
+                      placeholder="Optional format for analysis responses..."
+                      class="border-r-0 rounded-r-none"
+                      style="flex: 1;"
+                    />
+                    <InputGroupAddon>
+                      <Button
+                        icon="pi pi-window-maximize"
+                        severity="secondary"
+                        size="small"
+                        text
+                        @click="openExpandDialog('responseFormat', 'Response Format')"
+                        v-tooltip="'Expand for more space'"
+                      />
+                    </InputGroupAddon>
+                  </InputGroup>
+                  <Textarea
+                    v-else
+                    id="responseFormat"
+                    v-model="formData.responseFormat"
+                    :disabled="!isEditing"
+                    rows="5"
+                    placeholder="Optional format for analysis responses..."
+                    class="w-full"
+                  />
+                  <small class="text-slate-500 text-xs">
+                    Expected response format for AI analysis results
+                  </small>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-
-      </div>
-    </div>
 
     <!-- Fixed Footer - Action Buttons and Metadata -->
     <div class="flex-shrink-0">
@@ -208,8 +207,8 @@
       <!-- Read-only metadata -->
       <div v-if="!isEditing && initialValues.id" class="pt-4 border-t border-slate-200">
         <div class="text-xs text-slate-500 space-y-1">
-          <div>Created: {{ formatDateTime(initialValues.createdAt) }}</div>
-          <div>Updated: {{ formatDateTime(initialValues.updatedAt) }}</div>
+          <div>Created: {{ formatDateTime(initialValues.createdAt as string) }}</div>
+          <div>Updated: {{ formatDateTime(initialValues.updatedAt as string) }}</div>
         </div>
       </div>
     </div>
@@ -246,6 +245,8 @@
         />
       </div>
     </Dialog>
+
+
   </div>
 </template>
 
@@ -264,7 +265,7 @@ import InputGroupAddon from 'primevue/inputgroupaddon'
 
 // Props
 const props = defineProps<{
-  initialValues: Record<string, any>
+  initialValues: Record<string, unknown>
   isEditing: boolean
   readOnly: boolean
   saving: boolean
@@ -330,12 +331,12 @@ const validationErrors = computed(() => ({
 watch(() => props.initialValues, (newValues) => {
   if (newValues) {
     formData.value = {
-      name: newValues.name || '',
-      server: newValues.server || '',
-      username: newValues.username || '',
+      name: String(newValues.name || ''),
+      server: String(newValues.server || ''),
+      username: String(newValues.username || ''),
       apiToken: '', // Never pre-populate for security
-      instructions: newValues.instructions || '',
-      responseFormat: newValues.responseFormat || ''
+      instructions: String(newValues.instructions || ''),
+      responseFormat: String(newValues.responseFormat || '')
     }
   }
 }, { immediate: true })
@@ -359,12 +360,12 @@ const cancelExpandedContent = () => {
 
 const resetForm = () => {
   formData.value = {
-    name: props.initialValues.name || '',
-    server: props.initialValues.server || '',
-    username: props.initialValues.username || '',
+    name: String(props.initialValues.name || ''),
+    server: String(props.initialValues.server || ''),
+    username: String(props.initialValues.username || ''),
     apiToken: '', // Never pre-populate for security
-    instructions: props.initialValues.instructions || '',
-    responseFormat: props.initialValues.responseFormat || ''
+    instructions: String(props.initialValues.instructions || ''),
+    responseFormat: String(props.initialValues.responseFormat || '')
   }
   v$.value.$reset()
 }

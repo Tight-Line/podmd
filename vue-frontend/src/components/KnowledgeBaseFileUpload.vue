@@ -148,7 +148,7 @@ const emit = defineEmits<{
 const toast = useToast()
 
 // File Upload component refs
-const fileUploadRef = ref() // eslint-disable-line @typescript-eslint/no-explicit-any
+const fileUploadRef = ref()  
 
 // State
 const loadingFiles = ref(false)

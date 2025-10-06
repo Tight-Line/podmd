@@ -244,11 +244,6 @@ const checkBackendStatus = async () => {
   }
 }
 
-const logout = () => {
-  authStore.logout()
-  router.push('/login')
-}
-
 onMounted(() => {
   checkBackendStatus()
 })

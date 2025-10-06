@@ -1,5 +1,5 @@
 <template>
-  <div class="h-full flex flex-col">
+  <div class="flex-1 flex flex-col">
     <!-- Scrollable Form Content -->
     <div class="flex-1 overflow-y-auto">
       <Form
@@ -11,7 +11,6 @@
       >
         <!-- Basic Information -->
         <div class="space-y-4">
-
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <!-- Name Field -->
             <div class="flex flex-col gap-1">
@@ -57,7 +56,6 @@
 
         <!-- Authentication -->
         <div class="space-y-4">
-
           <!-- Bearer Token Field - Only show when editing -->
           <div v-if="!readOnly" class="flex flex-col gap-1">
             <label for="bearerToken" class="block text-sm font-medium text-slate-700">
@@ -128,7 +126,6 @@
 
         <!-- Configuration -->
         <div class="space-y-4">
-
           <!-- Insecure Skip TLS Verify -->
           <div class="flex items-center">
             <Checkbox

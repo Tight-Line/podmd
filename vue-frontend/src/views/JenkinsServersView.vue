@@ -34,39 +34,75 @@
         <!-- Right Panel - Server Details -->
         <SplitterPanel :size="70" :minSize="35">
           <div class="h-full bg-white">
-            <div v-if="selectedServer || isCreating" class="h-full flex flex-col">
-              <div class="p-4 border-b border-slate-200 flex items-center justify-between">
-                <h2 class="text-lg font-semibold text-slate-900">
-                  {{ isCreating ? 'Create Server' : isEditing ? 'Edit Server' : 'Server Details' }}
-                </h2>
-                <div v-if="!isEditing && !isCreating" class="flex gap-2">
+            <div v-if="selectedServer || isCreating" class="h-full relative">
+              <!-- Main Content - Tabs (fills remaining space) -->
+              <Tabs v-model:value="activeTab" @tab-change="onTabChange" class="h-full flex flex-col pb-14">
+                <TabList>
+                  <Tab value="0">Configuration</Tab>
+                  <Tab value="1">Knowledge Bases</Tab>
+                </TabList>
+                <TabPanels class="flex-1 overflow-hidden">
+                  <TabPanel value="0" class="h-full overflow-hidden">
+                    <div class="h-full overflow-auto p-4">
+                      <JenkinsServersForm
+                        v-if="selectedServer || isCreating"
+                        :key="selectedServer?.id || 'creating'"
+                        :initial-values="formData"
+                        :is-editing="isEditing || isCreating"
+                        :read-only="!isEditing && !isCreating"
+                        :saving="saving"
+                        @save-server="handleFormSave"
+                      />
+                    </div>
+                  </TabPanel>
+                  <TabPanel value="1" class="h-full overflow-hidden">
+                    <div class="h-full overflow-auto p-4">
+                      <KnowledgeBaseConnections
+                        v-if="selectedServer"
+                        ref="kbConnectionsRef"
+                        :source-id="selectedServer.id!"
+                        :source-type="'jenkins-server'"
+                        :is-editing="false"
+                        :read-only="false"
+                      />
+                    </div>
+                  </TabPanel>
+                </TabPanels>
+              </Tabs>
+
+              <!-- Footer Actions (locked to bottom) -->
+              <div class="absolute bottom-0 left-0 right-0 bg-white border-t border-slate-200">
+                <!-- Configuration tab actions -->
+                <div v-if="activeTab === '0'" class="px-4 py-3 flex justify-end">
+                  <div v-if="!isEditing && !isCreating" class="flex gap-2">
+                    <Button
+                      @click="startEdit"
+                      icon="pi pi-pencil"
+                      label="Edit Server"
+                      severity="secondary"
+                      size="small"
+                    />
+                  </div>
+                  <div v-else class="flex gap-2">
+                    <Button
+                      @click="cancelEdit"
+                      label="Cancel"
+                      severity="secondary"
+                      size="small"
+                    />
+                  </div>
+                </div>
+
+                <!-- Knowledge Bases tab actions -->
+                <div v-if="activeTab === '1'" class="px-4 py-3 flex justify-end">
                   <Button
-                    @click="startEdit"
-                    icon="pi pi-pencil"
-                    label="Edit"
+                    @click="addKnowledgeBase"
+                    icon="pi pi-plus"
+                    label="Add Knowledge Base"
                     severity="secondary"
                     size="small"
                   />
                 </div>
-                <div v-if="isEditing || isCreating" class="flex gap-2">
-                  <Button
-                    @click="cancelEdit"
-                    label="Cancel"
-                    severity="secondary"
-                    size="small"
-                  />
-                </div>
-              </div>
-              <div class="p-4 flex-1 overflow-auto">
-                <JenkinsServersForm
-                  v-if="selectedServer || isCreating"
-                  :key="selectedServer?.id || 'creating'"
-                  :initial-values="formData"
-                  :is-editing="isEditing || isCreating"
-                  :read-only="!isEditing && !isCreating"
-                  :saving="saving"
-                  @save-server="handleFormSave"
-                />
               </div>
             </div>
             <div v-else class="h-full flex items-center justify-center">
@@ -149,11 +185,17 @@ import { useToast } from 'primevue/usetoast'
 import Dialog from 'primevue/dialog'
 import Splitter from 'primevue/splitter'
 import SplitterPanel from 'primevue/splitterpanel'
+import Tabs from 'primevue/tabs'
+import TabList from 'primevue/tablist'
+import Tab from 'primevue/tab'
+import TabPanels from 'primevue/tabpanels'
+import TabPanel from 'primevue/tabpanel'
 import Button from 'primevue/button'
 import type { JenkinsServersResponse, CreateJenkinsServersRequest, UpdateJenkinsServersRequest } from '../api/Api'
 import { authenticatedApi } from '../api/authenticatedApi'
 import JenkinsServersForm from '../components/JenkinsServersForm.vue'
 import JenkinsServersList from '../components/JenkinsServersList.vue'
+import KnowledgeBaseConnections from '../components/KnowledgeBaseConnections.vue'
 
 const toast = useToast()
 
@@ -167,11 +209,16 @@ const deleting = ref(false)
 const selectedServer = ref<JenkinsServersResponse | null>(null)
 const isEditing = ref(false)
 const isCreating = ref(false)
+const activeTab = ref('0')
+
+// Component refs
+const kbConnectionsRef = ref<InstanceType<typeof KnowledgeBaseConnections> | null>(null)
 
 // Form data for right panel
 const formData = computed(() => {
   if (selectedServer.value) {
     return {
+      id: selectedServer.value.id, // Needed for knowledge base management
       name: selectedServer.value.name || '',
       server: selectedServer.value.server || '',
       username: selectedServer.value.username || '',
@@ -181,6 +228,7 @@ const formData = computed(() => {
     }
   }
   return {
+    id: undefined, // No ID when creating
     name: '',
     server: '',
     username: '',
@@ -233,6 +281,18 @@ const startEdit = () => {
 const cancelEdit = () => {
   isEditing.value = false
   isCreating.value = false
+}
+
+// Tab change handler
+const onTabChange = (event: { value?: number | string }) => {
+  activeTab.value = event.value?.toString() || '0'
+}
+
+// Add knowledge base handler
+const addKnowledgeBase = () => {
+  if (kbConnectionsRef.value) {
+    kbConnectionsRef.value.openAddKnowledgeBaseDialog()
+  }
 }
 
 const openCreateDialog = () => {
