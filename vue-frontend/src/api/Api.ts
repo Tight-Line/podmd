@@ -25,13 +25,13 @@ export interface CreateJenkinsServersRequest {
   server?: string | null;
   instructions?: string | null;
   responseFormat?: string | null;
-  /**
-   * @minLength 0
-   * @maxLength 100
-   */
-  username: string;
-  /** @minLength 1 */
-  apiToken: string;
+  username?: string | null;
+  apiToken?: string | null;
+}
+
+export interface CreateKnowledgeBaseDto {
+  name?: string | null;
+  description?: string | null;
 }
 
 export interface CreateKubeClusterRequest {
@@ -72,6 +72,44 @@ export interface JenkinsServersResponse {
   /** @format date-time */
   updatedAt?: string;
   username?: string | null;
+}
+
+export interface KnowledgeBaseDto {
+  /** @format uuid */
+  id?: string;
+  name?: string | null;
+  description?: string | null;
+  /** @format date-time */
+  createdAt?: string;
+  /** @format date-time */
+  updatedAt?: string;
+}
+
+export interface KnowledgeBaseWithSourcesDto {
+  /** @format uuid */
+  id?: string;
+  name?: string | null;
+  description?: string | null;
+  /** @format date-time */
+  createdAt?: string;
+  /** @format date-time */
+  updatedAt?: string;
+  sources?: SourceReadDto[] | null;
+}
+
+export interface KnowledgeFileDto {
+  /** @format uuid */
+  id?: string;
+  /** @format uuid */
+  knowledgeBaseId?: string;
+  fileName?: string | null;
+  contentType?: string | null;
+  /** @format int64 */
+  fileSize?: number;
+  /** @format date-time */
+  createdAt?: string;
+  /** @format date-time */
+  updatedAt?: string;
 }
 
 export interface KubeClusterResponse {
@@ -166,6 +204,20 @@ export interface SolutionDto {
   steps?: StepDto[] | null;
 }
 
+export interface SourceReadDto {
+  /** @format uuid */
+  id?: string;
+  name?: string | null;
+  type?: string | null;
+  server?: string | null;
+  instructions?: string | null;
+  responseFormat?: string | null;
+  /** @format date-time */
+  createdAt?: string;
+  /** @format date-time */
+  updatedAt?: string;
+}
+
 export interface StepDto {
   title?: string | null;
   explanation?: string | null;
@@ -179,6 +231,13 @@ export interface UpdateJenkinsServersRequest {
   responseFormat?: string | null;
   username?: string | null;
   apiToken?: string | null;
+}
+
+export interface UpdateKnowledgeBaseDto {
+  /** @format uuid */
+  id?: string;
+  name?: string | null;
+  description?: string | null;
 }
 
 export interface UpdateKubeClusterRequest {
@@ -746,6 +805,207 @@ export class Api<
     /**
      * No description
      *
+     * @tags KnowledgeBases
+     * @name V1KnowledgeBasesCreate
+     * @request POST:/api/v1/knowledge-bases
+     * @secure
+     */
+    v1KnowledgeBasesCreate: (
+      data: CreateKnowledgeBaseDto,
+      params: RequestParams = {},
+    ) =>
+      this.request<KnowledgeBaseDto, ProblemDetails>({
+        path: `/api/v1/knowledge-bases`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags KnowledgeBases
+     * @name V1KnowledgeBasesList
+     * @request GET:/api/v1/knowledge-bases
+     * @secure
+     */
+    v1KnowledgeBasesList: (params: RequestParams = {}) =>
+      this.request<KnowledgeBaseDto[], ProblemDetails>({
+        path: `/api/v1/knowledge-bases`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags KnowledgeBases
+     * @name V1KnowledgeBasesDetail
+     * @request GET:/api/v1/knowledge-bases/{id}
+     * @secure
+     */
+    v1KnowledgeBasesDetail: (id: string, params: RequestParams = {}) =>
+      this.request<KnowledgeBaseWithSourcesDto, ProblemDetails>({
+        path: `/api/v1/knowledge-bases/${id}`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags KnowledgeBases
+     * @name V1KnowledgeBasesUpdate
+     * @request PUT:/api/v1/knowledge-bases/{id}
+     * @secure
+     */
+    v1KnowledgeBasesUpdate: (
+      id: string,
+      data: UpdateKnowledgeBaseDto,
+      params: RequestParams = {},
+    ) =>
+      this.request<KnowledgeBaseDto, ProblemDetails>({
+        path: `/api/v1/knowledge-bases/${id}`,
+        method: "PUT",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags KnowledgeBases
+     * @name V1KnowledgeBasesDelete
+     * @request DELETE:/api/v1/knowledge-bases/{id}
+     * @secure
+     */
+    v1KnowledgeBasesDelete: (id: string, params: RequestParams = {}) =>
+      this.request<void, ProblemDetails>({
+        path: `/api/v1/knowledge-bases/${id}`,
+        method: "DELETE",
+        secure: true,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags KnowledgeBases
+     * @name V1KnowledgeBasesSourcesList
+     * @request GET:/api/v1/knowledge-bases/{id}/sources
+     * @secure
+     */
+    v1KnowledgeBasesSourcesList: (id: string, params: RequestParams = {}) =>
+      this.request<SourceReadDto[], ProblemDetails>({
+        path: `/api/v1/knowledge-bases/${id}/sources`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags KnowledgeFile
+     * @name V1FilesReplaceUpdate
+     * @request PUT:/api/v1/files/{fileId}/replace
+     * @secure
+     */
+    v1FilesReplaceUpdate: (
+      fileId: string,
+      data: {
+        /** @format binary */
+        file?: File;
+      },
+      query?: {
+        newFileName?: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<KnowledgeFileDto, ProblemDetails>({
+        path: `/api/v1/files/${fileId}/replace`,
+        method: "PUT",
+        query: query,
+        body: data,
+        secure: true,
+        type: ContentType.FormData,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags KnowledgeFile
+     * @name V1FilesDelete
+     * @request DELETE:/api/v1/files/{fileId}
+     * @secure
+     */
+    v1FilesDelete: (fileId: string, params: RequestParams = {}) =>
+      this.request<void, ProblemDetails>({
+        path: `/api/v1/files/${fileId}`,
+        method: "DELETE",
+        secure: true,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags KnowledgeFiles
+     * @name V1KnowledgebasesFilesCreate
+     * @request POST:/api/v1/knowledgebases/{knowledgeBaseId}/files
+     * @secure
+     */
+    v1KnowledgebasesFilesCreate: (
+      knowledgeBaseId: string,
+      data: FormData,
+      params: RequestParams = {},
+    ) =>
+      this.request<KnowledgeFileDto[], ProblemDetails>({
+        path: `/api/v1/knowledgebases/${knowledgeBaseId}/files`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.FormData,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags KnowledgeFiles
+     * @name V1KnowledgebasesFilesList
+     * @request GET:/api/v1/knowledgebases/{knowledgeBaseId}/files
+     * @secure
+     */
+    v1KnowledgebasesFilesList: (
+      knowledgeBaseId: string,
+      params: RequestParams = {},
+    ) =>
+      this.request<KnowledgeFileDto[], ProblemDetails>({
+        path: `/api/v1/knowledgebases/${knowledgeBaseId}/files`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
      * @tags Logs
      * @name V1ClustersLogsPodsCreate
      * @request POST:/api/v1/clusters/{clusterId}/Logs/pods
@@ -786,6 +1046,66 @@ export class Api<
         secure: true,
         type: ContentType.Json,
         format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Sources
+     * @name V1SourcesKnowledgeBasesList
+     * @request GET:/api/v1/sources/{sourceId}/knowledge-bases
+     * @secure
+     */
+    v1SourcesKnowledgeBasesList: (
+      sourceId: string,
+      params: RequestParams = {},
+    ) =>
+      this.request<KnowledgeBaseDto[], ProblemDetails>({
+        path: `/api/v1/sources/${sourceId}/knowledge-bases`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Sources
+     * @name V1SourcesKnowledgeBasesCreate
+     * @request POST:/api/v1/sources/{sourceId}/knowledge-bases/{knowledgeBaseId}
+     * @secure
+     */
+    v1SourcesKnowledgeBasesCreate: (
+      sourceId: string,
+      knowledgeBaseId: string,
+      params: RequestParams = {},
+    ) =>
+      this.request<void, ProblemDetails>({
+        path: `/api/v1/sources/${sourceId}/knowledge-bases/${knowledgeBaseId}`,
+        method: "POST",
+        secure: true,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Sources
+     * @name V1SourcesKnowledgeBasesDelete
+     * @request DELETE:/api/v1/sources/{sourceId}/knowledge-bases/{knowledgeBaseId}
+     * @secure
+     */
+    v1SourcesKnowledgeBasesDelete: (
+      sourceId: string,
+      knowledgeBaseId: string,
+      params: RequestParams = {},
+    ) =>
+      this.request<void, ProblemDetails>({
+        path: `/api/v1/sources/${sourceId}/knowledge-bases/${knowledgeBaseId}`,
+        method: "DELETE",
+        secure: true,
         ...params,
       }),
   };

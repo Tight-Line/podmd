@@ -34,6 +34,15 @@
           <i class="pi pi-cog mr-3"></i>
           Jenkins Servers
         </router-link>
+
+        <router-link
+          to="/knowledge-bases"
+          class="flex items-center px-4 py-3 text-slate-300 hover:text-white hover:bg-slate-700 rounded-lg transition-colors"
+          :class="{ 'bg-slate-700 text-white': route.name === 'knowledge-bases' }"
+        >
+          <i class="pi pi-database mr-3"></i>
+          Knowledge Bases
+        </router-link>
       </nav>
     </div>
 
