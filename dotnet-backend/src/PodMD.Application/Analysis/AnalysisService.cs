@@ -36,17 +36,20 @@ public class AnalysisService : IAnalysisService
     private readonly IKubeLogService _logService;
     private readonly ILlmClient _llmClient;
     private readonly IKubeClusterRepository _clusterRepository;
+    private readonly IRagService _ragService;
     private readonly ILogger<AnalysisService> _logger;
 
     public AnalysisService(
         IKubeLogService logService,
         ILlmClient llmClient,
         IKubeClusterRepository clusterRepository,
+        IRagService ragService,
         ILogger<AnalysisService> logger)
     {
         _logService = logService ?? throw new ArgumentNullException(nameof(logService));
         _llmClient = llmClient ?? throw new ArgumentNullException(nameof(llmClient));
         _clusterRepository = clusterRepository ?? throw new ArgumentNullException(nameof(clusterRepository));
+        _ragService = ragService ?? throw new ArgumentNullException(nameof(ragService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
@@ -153,9 +156,36 @@ public class AnalysisService : IAnalysisService
         var isDefaultFormat = string.IsNullOrWhiteSpace(cluster?.ResponseFormat) ||
                               cluster.ResponseFormat == AnalysisDefaults.DefaultResponseFormat;
 
+        // Try to get RAG context (gracefully fails if not available)
+        var ragContext = await GetRagContextSafeAsync(clusterId, logs, cancellationToken);
+
         // Build comprehensive instructions
         var baseInstructions = cluster?.Instructions ?? AnalysisDefaults.TroubleshootingPrompt;
         var jsonSchema = cluster?.ResponseFormat ?? AnalysisDefaults.DefaultResponseFormat;
+
+        var instructionsBuilder = new System.Text.StringBuilder();
+
+        // Add RAG context if available
+        if (ragContext.IsRagEnabled && !string.IsNullOrWhiteSpace(ragContext.RetrievedKnowledge))
+        {
+            _logger.LogInformation("📚 RAG ACTIVE: Analyzing with enhanced context for cluster {ClusterId} - {Tokens} tokens from {Sources} knowledge sources",
+                clusterId, ragContext.KnowledgeTokens, ragContext.SourcesUsed);
+
+            instructionsBuilder.AppendLine("Relevant Knowledge Context:");
+            instructionsBuilder.AppendLine(ragContext.RetrievedKnowledge);
+            instructionsBuilder.AppendLine();
+        }
+        else
+        {
+            _logger.LogDebug("Base LLM analysis: RAG not available for cluster {ClusterId}", clusterId);
+        }
+
+        instructionsBuilder.AppendLine(baseInstructions);
+
+        // Combine instructions with format and guidelines
+        var instructions = $@"{instructionsBuilder.ToString().Trim()}
+
+Return a JSON object in this format: {jsonSchema}";
 
         // Log format usage for monitoring
         if (!isDefaultFormat)
@@ -163,10 +193,7 @@ public class AnalysisService : IAnalysisService
             _logger.LogInformation("Cluster {ClusterId} using custom response format", clusterId);
         }
 
-        // Combine instructions with format and guidelines
-        var instructions = $@"{baseInstructions}
-
-Return a JSON object in this format: {jsonSchema}";
+        _logger.LogInformation("Instructions: {instr}", instructions);
 
         // Call LLM
         var llmResponse = await _llmClient.AnalyzeLogsAsync(logs, instructions, cancellationToken);
@@ -251,6 +278,46 @@ Return a JSON object in this format: {jsonSchema}";
                 };
             }
         }
+    }
+
+    private async Task<AnalysisRagContext> GetRagContextSafeAsync(Guid clusterId, string query, CancellationToken cancellationToken)
+    {
+        try
+        {
+            // Extract a meaningful query from logs for semantic search
+            // Use first 500 characters as representative sample, or first few lines
+            var representativeQuery = ExtractRepresentativeQuery(query, 500);
+            var ragContext = await _ragService.GetRelevantContextAsync(clusterId, 1024, cancellationToken);
+            return ragContext;
+        }
+        catch (Exception ex)
+        {
+            // RAG failures should not break analysis - log and continue without RAG
+            _logger.LogWarning(ex, "RAG context retrieval failed for cluster {ClusterId}, continuing without RAG: {Message}",
+                clusterId, ex.Message);
+            return new AnalysisRagContext(); // Return empty context
+        }
+    }
+
+    private static string ExtractRepresentativeQuery(string logs, int maxLength)
+    {
+        if (string.IsNullOrWhiteSpace(logs))
+        {
+            return "error logs analysis";
+        }
+
+        // Take first few lines to get representative sample
+        var lines = logs.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        var representativeLines = lines.Take(10); // First 10 lines should give good context
+        var repQuery = string.Join(" ", representativeLines);
+
+        // Truncate if too long
+        if (repQuery.Length > maxLength)
+        {
+            repQuery = repQuery.Substring(0, maxLength).TrimEnd();
+        }
+
+        return repQuery.Length > 10 ? repQuery : "kubernetes error logs analysis";
     }
 
     private string CleanLlmResponse(string response)

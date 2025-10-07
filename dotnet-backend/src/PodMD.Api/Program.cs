@@ -47,6 +47,9 @@ builder.Services.AddScoped<PodMD.Application.Interfaces.IAuthService, PodMD.Appl
 builder.Services.AddScoped<PodMD.Application.Analysis.ILlmClient, PodMD.Infrastructure.Analysis.LlmClient>();
 builder.Services.AddScoped<PodMD.Application.Analysis.IAnalysisService, PodMD.Application.Analysis.AnalysisService>();
 
+// RAG services (direct chunk inclusion)
+builder.Services.AddScoped<PodMD.Application.Analysis.IRagService, PodMD.Application.Analysis.RagService>();
+
 // File storage services
 builder.Services.AddScoped<PodMD.Domain.Interfaces.IFileStorage, PodMD.Application.Services.MinioFileStorage>();
 builder.Services.AddScoped<PodMD.Application.Interfaces.IKnowledgeFileRepository, PodMD.Infrastructure.Repositories.KnowledgeFileRepository>();
