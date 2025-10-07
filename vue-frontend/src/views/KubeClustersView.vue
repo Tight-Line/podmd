@@ -225,6 +225,8 @@ const formData = computed(() => {
       certificateAuthorityPem: '', // Can't populate for security
       insecureSkipTlsVerify: Boolean(selectedCluster.value.insecureSkipTlsVerify),
       defaultNamespace: selectedCluster.value.defaultNamespace || '',
+      instructions: selectedCluster.value.instructions || '',
+      responseFormat: selectedCluster.value.responseFormat || '',
       hasBearerToken: Boolean(selectedCluster.value.hasBearerToken),
       hasCertificateAuthority: Boolean(selectedCluster.value.hasCertificateAuthority)
     }
@@ -237,6 +239,8 @@ const formData = computed(() => {
     certificateAuthorityPem: '',
     insecureSkipTlsVerify: false,
     defaultNamespace: '',
+    instructions: '',
+    responseFormat: '',
     hasBearerToken: false,
     hasCertificateAuthority: false
   }
@@ -327,7 +331,9 @@ const handleCreateCluster = async ({ valid, values }: { valid: boolean, values: 
       bearerToken: String(values.bearerToken).trim(),
       certificateAuthorityPem: values.certificateAuthorityPem ? String(values.certificateAuthorityPem).trim() : undefined,
       insecureSkipTlsVerify: Boolean(values.insecureSkipTlsVerify),
-      defaultNamespace: values.defaultNamespace ? String(values.defaultNamespace).trim() : undefined
+      defaultNamespace: values.defaultNamespace ? String(values.defaultNamespace).trim() : undefined,
+      instructions: values.instructions ? String(values.instructions).trim() : undefined,
+      responseFormat: values.responseFormat ? String(values.responseFormat).trim() : undefined
     }
 
     await authenticatedApi.api.v1ClustersCreate(createData, {})
@@ -392,6 +398,18 @@ const handleFormSave = async ({ valid, values }: { valid: boolean, values: Recor
         const newNamespace = String(values.defaultNamespace).trim()
         if (newNamespace !== (selectedCluster.value.defaultNamespace || '')) {
           updateData.defaultNamespace = newNamespace || undefined
+        }
+      }
+      if (values.instructions !== undefined) {
+        const newInstructions = String(values.instructions).trim()
+        if (newInstructions !== (selectedCluster.value.instructions || '')) {
+          updateData.instructions = newInstructions || undefined
+        }
+      }
+      if (values.responseFormat !== undefined) {
+        const newResponseFormat = String(values.responseFormat).trim()
+        if (newResponseFormat !== (selectedCluster.value.responseFormat || '')) {
+          updateData.responseFormat = newResponseFormat || undefined
         }
       }
 

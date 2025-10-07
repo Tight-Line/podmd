@@ -3,6 +3,7 @@
     <!-- Scrollable Form Content -->
     <div class="flex-1 overflow-y-auto">
       <Form
+        ref="formRef"
         v-slot="$form"
         :initial-values="initialValues"
         :resolver="validationSchema"
@@ -316,7 +317,7 @@ import Dialog from 'primevue/dialog'
 import InputGroup from 'primevue/inputgroup'
 import InputGroupAddon from 'primevue/inputgroupaddon'
 
-import { computed, ref } from 'vue'
+import { computed, ref, watch, nextTick } from 'vue'
 
 const props = defineProps<{
   visible?: boolean
@@ -331,6 +332,25 @@ const emit = defineEmits<{
   'save-cluster': [formValues: { valid: boolean, values: Record<string, unknown> }]
   'close-dialog': []
 }>()
+
+// Reference to the form to handle value updates
+const formRef = ref()
+
+// Watch for initialValues changes and update form when not editing
+watch(
+  () => props.initialValues,
+  async (newValues) => {
+    // Only update form values when not in editing mode (read-only view)
+    if (!props.isEditing && formRef.value) {
+      await nextTick()
+      // Reset form with new initial values
+      formRef.value.resetForm({
+        values: newValues
+      })
+    }
+  },
+  { deep: true }
+)
 
 // Dialog state for expanded text editing
 const expandDialogVisible = ref(false)
