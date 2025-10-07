@@ -10,14 +10,11 @@
  * ---------------------------------------------------------------
  */
 
-export interface AnalysisDataDto {
-  errors?: LogErrorDto[] | null;
-}
-
 export interface AnalysisResponseDto {
   success?: boolean;
-  data?: AnalysisDataDto;
+  data?: any;
   message?: string | null;
+  resultFormat?: string | null;
 }
 
 export interface CreateJenkinsServersRequest {
@@ -130,12 +127,6 @@ export interface KubeClusterResponse {
   defaultNamespace?: string | null;
 }
 
-export interface LogErrorDto {
-  generalMessage?: string | null;
-  occurrences?: string[] | null;
-  solutions?: SolutionDto[] | null;
-}
-
 export interface LogMetadata {
   podName?: string | null;
   containerName?: string | null;
@@ -199,11 +190,6 @@ export interface RegisterRequest {
   password?: string | null;
 }
 
-export interface SolutionDto {
-  description?: string | null;
-  steps?: StepDto[] | null;
-}
-
 export interface SourceReadDto {
   /** @format uuid */
   id?: string;
@@ -216,12 +202,6 @@ export interface SourceReadDto {
   createdAt?: string;
   /** @format date-time */
   updatedAt?: string;
-}
-
-export interface StepDto {
-  title?: string | null;
-  explanation?: string | null;
-  command?: string | null;
 }
 
 export interface UpdateJenkinsServersRequest {
@@ -970,7 +950,9 @@ export class Api<
      */
     v1KnowledgebasesFilesCreate: (
       knowledgeBaseId: string,
-      data: FormData,
+      data: {
+        files?: File[];
+      },
       params: RequestParams = {},
     ) =>
       this.request<KnowledgeFileDto[], ProblemDetails>({

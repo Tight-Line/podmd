@@ -3,8 +3,9 @@ namespace PodMD.Api.Dtos;
 public class AnalysisResponseDto
 {
     public bool Success { get; set; }
-    public AnalysisDataDto? Data { get; set; }
+    public object? Data { get; set; }
     public string? Message { get; set; }
+    public string ResultFormat { get; set; } = "Default";
 }
 
 public class AnalysisDataDto
@@ -14,7 +15,7 @@ public class AnalysisDataDto
 
 public class LogErrorDto
 {
-    public string GeneralMessage { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
     public List<string> Occurrences { get; set; } = new();
     public List<SolutionDto> Solutions { get; set; } = new();
 }

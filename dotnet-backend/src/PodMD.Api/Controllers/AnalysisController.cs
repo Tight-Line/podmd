@@ -42,29 +42,38 @@ public class AnalysisController : ControllerBase
             var response = new AnalysisResponseDto
             {
                 Success = result.Success,
-                Message = result.Message
+                Message = result.Message,
+                ResultFormat = result.ResultFormat == ResultFormat.Default ? "Default" : "Custom"
             };
 
-            if (result.Success && result.Data is AnalysisResult analysisResult)
+            if (result.Success)
             {
-                response.Data = new AnalysisDataDto
+                if (result.ResultFormat == ResultFormat.Default && result.Data is AnalysisResult analysisResult)
                 {
-                    Errors = analysisResult.Errors.Select(e => new LogErrorDto
+                    response.Data = new AnalysisDataDto
                     {
-                        GeneralMessage = e.GeneralMessage,
-                        Occurrences = e.Occurrences,
-                        Solutions = e.Solutions.Select(s => new SolutionDto
+                        Errors = analysisResult.Errors.Select(e => new LogErrorDto
                         {
-                            Description = s.Description,
-                            Steps = s.Steps.Select(step => new StepDto
+                            Description = e.Description,
+                            Occurrences = e.Occurrences,
+                            Solutions = e.Solutions.Select(s => new SolutionDto
                             {
-                                Title = step.Title,
-                                Explanation = step.Explanation,
-                                Command = step.Command
+                                Description = s.Description,
+                                Steps = s.Steps.Select(step => new StepDto
+                                {
+                                    Title = step.Title,
+                                    Explanation = step.Explanation,
+                                    Command = step.Command
+                                }).ToList()
                             }).ToList()
                         }).ToList()
-                    }).ToList()
-                };
+                    };
+                }
+                else if (result.ResultFormat == ResultFormat.Custom)
+                {
+                    // Pass raw JSON element directly
+                    response.Data = result.Data;
+                }
             }
 
             return Ok(response);
@@ -132,29 +141,38 @@ public class AnalysisController : ControllerBase
             var response = new AnalysisResponseDto
             {
                 Success = result.Success,
-                Message = result.Message
+                Message = result.Message,
+                ResultFormat = result.ResultFormat == ResultFormat.Default ? "Default" : "Custom"
             };
 
-            if (result.Success && result.Data is AnalysisResult analysisResult)
+            if (result.Success)
             {
-                response.Data = new AnalysisDataDto
+                if (result.ResultFormat == ResultFormat.Default && result.Data is AnalysisResult analysisResult)
                 {
-                    Errors = analysisResult.Errors.Select(e => new LogErrorDto
+                    response.Data = new AnalysisDataDto
                     {
-                        GeneralMessage = e.GeneralMessage,
-                        Occurrences = e.Occurrences,
-                        Solutions = e.Solutions.Select(s => new SolutionDto
+                        Errors = analysisResult.Errors.Select(e => new LogErrorDto
                         {
-                            Description = s.Description,
-                            Steps = s.Steps.Select(step => new StepDto
+                            Description = e.Description,
+                            Occurrences = e.Occurrences,
+                            Solutions = e.Solutions.Select(s => new SolutionDto
                             {
-                                Title = step.Title,
-                                Explanation = step.Explanation,
-                                Command = step.Command
+                                Description = s.Description,
+                                Steps = s.Steps.Select(step => new StepDto
+                                {
+                                    Title = step.Title,
+                                    Explanation = step.Explanation,
+                                    Command = step.Command
+                                }).ToList()
                             }).ToList()
                         }).ToList()
-                    }).ToList()
-                };
+                    };
+                }
+                else if (result.ResultFormat == ResultFormat.Custom)
+                {
+                    // Pass raw JSON element directly
+                    response.Data = result.Data;
+                }
             }
 
             return Ok(response);

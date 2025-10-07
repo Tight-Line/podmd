@@ -266,22 +266,22 @@
                    :class="analysisResult.success ? 'text-green-800' : 'text-red-800'">
                   {{ analysisResult.message }}
                 </p>
-                <p v-if="analysisResult.success" class="text-sm text-green-700 mt-1">
+                <p v-if="analysisResult.success && analysisResult.resultFormat !== 'Custom'" class="text-sm text-green-700 mt-1">
                   Found {{ analysisResult.data?.errors?.length || 0 }} issue{{ (analysisResult.data?.errors?.length || 0) !== 1 ? 's' : '' }}
                 </p>
               </div>
             </div>
           </div>
 
-          <!-- Error Analysis -->
-          <div v-if="analysisResult.success && analysisResult.data?.errors?.length"
+          <!-- Default Format Results -->
+          <div v-if="analysisResult.success && analysisResult.resultFormat !== 'Custom' && analysisResult.data?.errors?.length"
                class="space-y-4">
             <div v-for="(error, index) in analysisResult.data.errors" :key="index"
                  class="border border-slate-200 rounded-lg overflow-hidden">
               <div class="bg-slate-50 px-4 py-3 border-b border-slate-200">
                 <h3 class="font-semibold text-slate-900 flex items-center">
                   <i class="pi pi-exclamation-triangle text-red-500 mr-2"></i>
-                  {{ error.generalMessage }}
+                  {{ error.description }}
                 </h3>
               </div>
 
@@ -325,6 +325,26 @@
                         </div>
                       </div>
                     </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+
+          <!-- Custom Format Results -->
+          <div v-if="analysisResult.success && analysisResult.resultFormat === 'Custom'"
+               class="space-y-4">
+            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+              <div class="flex items-start">
+                <i class="pi pi-info-circle text-yellow-600 mr-3 mt-0.5"></i>
+                <div>
+                  <h3 class="font-semibold text-yellow-800 mb-2">Custom Analysis Format</h3>
+                  <p class="text-sm text-yellow-700 mb-4">
+                    This cluster uses a custom response format. Raw analysis results below:
+                  </p>
+                  <div class="bg-slate-800 text-green-400 rounded p-3 text-sm overflow-x-auto">
+                    <pre>{{ JSON.stringify(analysisResult.data, null, 2) }}</pre>
                   </div>
                 </div>
               </div>
@@ -420,6 +440,7 @@ const runPodAnalysis = async () => {
 
     const response = await authenticatedApi.api.v1ClustersAnalysisPodsCreate(selectedCluster.value, request)
     analysisResult.value = response.data
+    console.log('Pod analysis result:', analysisResult.value)
   } catch (error: any) {
     console.error('Pod analysis failed:', error)
     analysisResult.value = {

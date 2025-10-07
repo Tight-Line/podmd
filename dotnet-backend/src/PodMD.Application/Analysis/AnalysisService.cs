@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using Microsoft.Extensions.Logging;
 using PodMD.Application.Dtos;
 using PodMD.Application.Interfaces;
 
@@ -7,7 +8,7 @@ namespace PodMD.Application.Analysis;
 
 public class LogError
 {
-    public string GeneralMessage { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
     public List<string> Occurrences { get; set; } = new();
     public List<Solution> Solutions { get; set; } = new();
 }
@@ -35,15 +36,18 @@ public class AnalysisService : IAnalysisService
     private readonly IKubeLogService _logService;
     private readonly ILlmClient _llmClient;
     private readonly IKubeClusterRepository _clusterRepository;
+    private readonly ILogger<AnalysisService> _logger;
 
     public AnalysisService(
         IKubeLogService logService,
         ILlmClient llmClient,
-        IKubeClusterRepository clusterRepository)
+        IKubeClusterRepository clusterRepository,
+        ILogger<AnalysisService> logger)
     {
         _logService = logService ?? throw new ArgumentNullException(nameof(logService));
         _llmClient = llmClient ?? throw new ArgumentNullException(nameof(llmClient));
         _clusterRepository = clusterRepository ?? throw new ArgumentNullException(nameof(clusterRepository));
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
     public async Task<AnalysisResponse> AnalyzePodLogsAsync(
@@ -84,13 +88,8 @@ public class AnalysisService : IAnalysisService
             }
 
             // Analyze logs
-            var analysisResult = await AnalyzeLogsAsync(clusterId, logResult.Logs, cancellationToken);
-
-            return new AnalysisResponse
-            {
-                Success = true,
-                Data = analysisResult
-            };
+            var analysisResponse = await AnalyzeLogsAsync(clusterId, logResult.Logs, cancellationToken);
+            return analysisResponse;
         }
         catch (Exception ex)
         {
@@ -132,13 +131,8 @@ public class AnalysisService : IAnalysisService
             }
 
             // Analyze logs
-            var analysisResult = await AnalyzeLogsAsync(clusterId, logResult.Logs, cancellationToken);
-
-            return new AnalysisResponse
-            {
-                Success = true,
-                Data = analysisResult
-            };
+            var analysisResponse = await AnalyzeLogsAsync(clusterId, logResult.Logs, cancellationToken);
+            return analysisResponse;
         }
         catch (Exception ex)
         {
@@ -150,49 +144,29 @@ public class AnalysisService : IAnalysisService
         }
     }
 
-    private async Task<AnalysisResult> AnalyzeLogsAsync(Guid clusterId, string logs, CancellationToken cancellationToken)
+    private async Task<AnalysisResponse> AnalyzeLogsAsync(Guid clusterId, string logs, CancellationToken cancellationToken)
     {
         // Get cluster configuration
         var cluster = await _clusterRepository.GetByIdAsync(clusterId);
 
-        // Build comprehensive instructions
-        var baseInstructions = cluster?.Instructions ??
-            "Analyze these Kubernetes logs and identify root-cause errors. Focus on error-level messages and provide actionable solutions.";
+        // Determine if custom response format is being used
+        var isDefaultFormat = string.IsNullOrWhiteSpace(cluster?.ResponseFormat) ||
+                              cluster.ResponseFormat == AnalysisDefaults.DefaultResponseFormat;
 
-        var jsonSchema = cluster?.ResponseFormat ??
-            @"{
-  ""errors"": [
-    {
-      ""general_message"": ""short description of the error"",
-      ""occurrences"": [""original error line 1"", ""original error line 2""],
-      ""solutions"": [
+        // Build comprehensive instructions
+        var baseInstructions = cluster?.Instructions ?? AnalysisDefaults.TroubleshootingPrompt;
+        var jsonSchema = cluster?.ResponseFormat ?? AnalysisDefaults.DefaultResponseFormat;
+
+        // Log format usage for monitoring
+        if (!isDefaultFormat)
         {
-          ""description"": ""solution description"",
-          ""steps"": [
-            {
-              ""title"": ""step title"",
-              ""explanation"": ""step explanation"",
-              ""command"": ""kubectl or helm command""
-            }
-          ]
+            _logger.LogInformation("Cluster {ClusterId} using custom response format", clusterId);
         }
-      ]
-    }
-  ]
-}";
 
         // Combine instructions with format and guidelines
         var instructions = $@"{baseInstructions}
 
-Return a JSON object in this format: {jsonSchema}
-
-Important guidelines:
-- Focus only on ERROR, FATAL, or similar error-level messages
-- Ignore WARNING or INFO messages unless they indicate real issues
-- Deduplicate similar errors and group them logically
-- Provide specific, actionable kubectl/helm commands in solutions
-- Keep error messages concise but meaningful
-- If no errors found, return an empty errors array";
+Return a JSON object in this format: {jsonSchema}";
 
         // Call LLM
         var llmResponse = await _llmClient.AnalyzeLogsAsync(logs, instructions, cancellationToken);
@@ -200,25 +174,82 @@ Important guidelines:
         // Clean LLM response (remove markdown code blocks, etc.)
         var cleanResponse = CleanLlmResponse(llmResponse);
 
-        // Parse and validate response
-        try
+        if (string.IsNullOrWhiteSpace(cleanResponse))
         {
-            var result = JsonSerializer.Deserialize<AnalysisResult>(cleanResponse, new JsonSerializerOptions
+            _logger.LogError("LLM returned empty or invalid response for cluster {ClusterId}", clusterId);
+            return new AnalysisResponse
             {
-                PropertyNameCaseInsensitive = true
-            });
-
-            // Validate structure (basic validation)
-            if (result == null || result.Errors == null)
-            {
-                throw new JsonException("Invalid response structure");
-            }
-
-            return result;
+                Success = false,
+                Message = "LLM returned invalid or empty response",
+                ResultFormat = isDefaultFormat ? ResultFormat.Default : ResultFormat.Custom
+            };
         }
-        catch (JsonException ex)
+
+        // Deserialize based on expected format
+        if (isDefaultFormat)
         {
-            throw new LlmAnalysisException($"Failed to parse LLM response as JSON: {ex.Message}", ex);
+            // Try to deserialize as standard AnalysisResult
+            try
+            {
+                var result = JsonSerializer.Deserialize<AnalysisResult>(cleanResponse, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+
+                // Validate structure (basic validation)
+                if (result == null || result.Errors == null)
+                {
+                    throw new JsonException("Invalid response structure - missing required fields");
+                }
+
+                _logger.LogDebug("Successfully parsed response as AnalysisResult for cluster {ClusterId}", clusterId);
+                return new AnalysisResponse
+                {
+                    Success = true,
+                    Data = result,
+                    Message = "Analysis completed successfully",
+                    ResultFormat = ResultFormat.Default
+                };
+            }
+            catch (JsonException ex)
+            {
+                _logger.LogError(ex, "Failed to parse LLM response as AnalysisResult for cluster {ClusterId} using default format: {CleanResponse}", clusterId, cleanResponse);
+
+                return new AnalysisResponse
+                {
+                    Success = false,
+                    Message = "Failed to parse LLM response - invalid JSON structure for default format",
+                    ResultFormat = ResultFormat.Default
+                };
+            }
+        }
+        else
+        {
+            // Parse as raw JSON document for custom formats
+            try
+            {
+                var jsonDocument = JsonDocument.Parse(cleanResponse);
+
+                _logger.LogDebug("Successfully parsed response as custom JSON format for cluster {ClusterId}", clusterId);
+                return new AnalysisResponse
+                {
+                    Success = true,
+                    Data = jsonDocument.RootElement,
+                    Message = "Analysis completed with custom format",
+                    ResultFormat = ResultFormat.Custom
+                };
+            }
+            catch (JsonException ex)
+            {
+                _logger.LogError(ex, "Failed to parse LLM response as JSON for cluster {ClusterId} using custom format: {CleanResponse}", clusterId, cleanResponse);
+
+                return new AnalysisResponse
+                {
+                    Success = false,
+                    Message = "Failed to parse LLM response - invalid JSON format",
+                    ResultFormat = ResultFormat.Custom
+                };
+            }
         }
     }
 
