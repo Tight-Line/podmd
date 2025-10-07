@@ -239,30 +239,32 @@
             </div>
           </div>
         </div>
+
+        <!-- Action Buttons - Now Inside Form -->
+        <div v-if="isEditing && !readOnly" class="flex justify-end gap-3 pt-4 border-t border-slate-200">
+          <!-- Only show cancel when creating (in dialog) -->
+          <Button
+            v-if="!visible"
+            type="button"
+            @click="$emit('close-dialog')"
+            label="Cancel"
+            class="hover:text-slate-800 hover:bg-slate-100 border-slate-300"
+            size="small"
+          />
+          <Button
+            type="submit"
+            :loading="saving"
+            :label="visible ? 'Save' : 'Create Cluster'"
+            icon="pi pi-save"
+            class="hover:text-slate-800 hover:bg-slate-100 border-slate-300"
+            size="small"
+          />
+        </div>
       </Form>
     </div>
 
-    <!-- Fixed Footer - Action Buttons -->
+    <!-- Fixed Footer is now empty -->
     <div class="flex-shrink-0">
-      <div v-if="isEditing && !readOnly" class="flex justify-end gap-3 pt-4 border-t border-slate-200">
-        <!-- Only show cancel when creating (in dialog) -->
-        <Button
-          v-if="!visible"
-          type="button"
-          @click="$emit('close-dialog')"
-          label="Cancel"
-          class="hover:text-slate-800 hover:bg-slate-100 border-slate-300"
-          size="small"
-        />
-        <Button
-          type="submit"
-          :loading="saving"
-          :label="visible ? 'Save' : 'Create Cluster'"
-          icon="pi pi-save"
-          class="hover:text-slate-800 hover:bg-slate-100 border-slate-300"
-          size="small"
-        />
-      </div>
     </div>
 
     <!-- Expand Dialog for Large Text Editing -->

@@ -5,6 +5,7 @@ import LoginView from '../views/LoginView.vue'
 import KubeClustersView from '../views/KubeClustersView.vue'
 import JenkinsServersView from '../views/JenkinsServersView.vue'
 import KnowledgeBasesView from '../views/KnowledgeBasesView.vue'
+import LogAnalysisView from '../views/LogAnalysisView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -36,6 +37,12 @@ const router = createRouter({
       path: '/knowledge-bases',
       name: 'knowledge-bases',
       component: KnowledgeBasesView,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/log-analysis',
+      name: 'log-analysis',
+      component: LogAnalysisView,
       meta: { requiresAuth: true },
     },
   ],

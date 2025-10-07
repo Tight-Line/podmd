@@ -43,6 +43,15 @@
           <i class="pi pi-database mr-3"></i>
           Knowledge Bases
         </router-link>
+
+        <router-link
+          to="/log-analysis"
+          class="flex items-center px-4 py-3 text-slate-300 hover:text-white hover:bg-slate-700 rounded-lg transition-colors"
+          :class="{ 'bg-slate-700 text-white': route.name === 'log-analysis' }"
+        >
+          <i class="pi pi-search mr-3"></i>
+          Log Analysis
+        </router-link>
       </nav>
     </div>
 
