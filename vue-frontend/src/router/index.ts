@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import HomeView from '../views/HomeView.vue'
 import LoginView from '../views/LoginView.vue'
+import SettingsView from '../views/SettingsView.vue'
 import KubeClustersView from '../views/KubeClustersView.vue'
 import JenkinsServersView from '../views/JenkinsServersView.vue'
 import KnowledgeBasesView from '../views/KnowledgeBasesView.vue'
@@ -19,6 +20,12 @@ const router = createRouter({
       path: '/',
       name: 'home',
       component: HomeView,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/settings',
+      name: 'settings',
+      component: SettingsView,
       meta: { requiresAuth: true },
     },
     {

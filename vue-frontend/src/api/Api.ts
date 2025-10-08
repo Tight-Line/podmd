@@ -17,6 +17,37 @@ export interface AnalysisResponseDto {
   resultFormat?: string | null;
 }
 
+export interface ApiKeyDto {
+  /** @format uuid */
+  id?: string;
+  userId?: string | null;
+  permissions?: string | null;
+  /** @format int32 */
+  usageLimit?: number | null;
+  /** @format int32 */
+  usageCount?: number;
+  status?: string | null;
+  /** @format date-time */
+  createdAt?: string;
+  /** @format date-time */
+  lastUsedAt?: string | null;
+}
+
+export interface CreateApiKeyRequest {
+  permissions?: string | null;
+  /** @format int32 */
+  usageLimit?: number | null;
+}
+
+export interface CreateApiKeyResponse {
+  /** @format uuid */
+  id?: string;
+  key?: string | null;
+  permissions?: string | null;
+  /** @format int32 */
+  usageLimit?: number | null;
+}
+
 export interface CreateJenkinsServersRequest {
   name?: string | null;
   server?: string | null;
@@ -204,6 +235,13 @@ export interface SourceReadDto {
   updatedAt?: string;
 }
 
+export interface UpdateApiKeyRequest {
+  permissions?: string | null;
+  /** @format int32 */
+  usageLimit?: number | null;
+  status?: string | null;
+}
+
 export interface UpdateJenkinsServersRequest {
   name?: string | null;
   server?: string | null;
@@ -229,6 +267,17 @@ export interface UpdateKubeClusterRequest {
   certificateAuthorityPem?: string | null;
   insecureSkipTlsVerify?: boolean | null;
   defaultNamespace?: string | null;
+}
+
+export interface UserDto {
+  id?: string | null;
+  firstName?: string | null;
+  lastName?: string | null;
+  email?: string | null;
+  /** @format date-time */
+  createdAt?: string;
+  /** @format date-time */
+  updatedAt?: string | null;
 }
 
 export type QueryParamsType = Record<string | number, any>;
@@ -543,14 +592,106 @@ export class Api<
     /**
      * No description
      *
+     * @tags ApiKeys
+     * @name ApikeysCreate
+     * @request POST:/api/apikeys
+     * @secure
+     */
+    apikeysCreate: (data: CreateApiKeyRequest, params: RequestParams = {}) =>
+      this.request<CreateApiKeyResponse, ProblemDetails>({
+        path: `/api/apikeys`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags ApiKeys
+     * @name ApikeysList
+     * @request GET:/api/apikeys
+     * @secure
+     */
+    apikeysList: (params: RequestParams = {}) =>
+      this.request<ApiKeyDto[], ProblemDetails>({
+        path: `/api/apikeys`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags ApiKeys
+     * @name ApikeysDetail
+     * @request GET:/api/apikeys/{id}
+     * @secure
+     */
+    apikeysDetail: (id: string, params: RequestParams = {}) =>
+      this.request<ApiKeyDto, ProblemDetails>({
+        path: `/api/apikeys/${id}`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags ApiKeys
+     * @name ApikeysUpdate
+     * @request PUT:/api/apikeys/{id}
+     * @secure
+     */
+    apikeysUpdate: (
+      id: string,
+      data: UpdateApiKeyRequest,
+      params: RequestParams = {},
+    ) =>
+      this.request<ApiKeyDto, ProblemDetails>({
+        path: `/api/apikeys/${id}`,
+        method: "PUT",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags ApiKeys
+     * @name ApikeysDelete
+     * @request DELETE:/api/apikeys/{id}
+     * @secure
+     */
+    apikeysDelete: (id: string, params: RequestParams = {}) =>
+      this.request<void, ProblemDetails>({
+        path: `/api/apikeys/${id}`,
+        method: "DELETE",
+        secure: true,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
      * @tags Auth
      * @name V1AuthRegisterCreate
-     * @request POST:/api/v1/Auth/register
+     * @request POST:/api/v1/auth/register
      * @secure
      */
     v1AuthRegisterCreate: (data: RegisterRequest, params: RequestParams = {}) =>
       this.request<void, any>({
-        path: `/api/v1/Auth/register`,
+        path: `/api/v1/auth/register`,
         method: "POST",
         body: data,
         secure: true,
@@ -563,12 +704,12 @@ export class Api<
      *
      * @tags Auth
      * @name V1AuthLoginCreate
-     * @request POST:/api/v1/Auth/login
+     * @request POST:/api/v1/auth/login
      * @secure
      */
     v1AuthLoginCreate: (data: LoginRequest, params: RequestParams = {}) =>
       this.request<void, any>({
-        path: `/api/v1/Auth/login`,
+        path: `/api/v1/auth/login`,
         method: "POST",
         body: data,
         secure: true,
@@ -581,14 +722,31 @@ export class Api<
      *
      * @tags Auth
      * @name V1AuthMeList
-     * @request GET:/api/v1/Auth/me
+     * @request GET:/api/v1/auth/me
      * @secure
      */
     v1AuthMeList: (params: RequestParams = {}) =>
       this.request<void, any>({
-        path: `/api/v1/Auth/me`,
+        path: `/api/v1/auth/me`,
         method: "GET",
         secure: true,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Auth
+     * @name V1AuthValidateKeyCreate
+     * @request POST:/api/v1/auth/validate-key
+     * @secure
+     */
+    v1AuthValidateKeyCreate: (params: RequestParams = {}) =>
+      this.request<UserDto, ProblemDetails>({
+        path: `/api/v1/auth/validate-key`,
+        method: "POST",
+        secure: true,
+        format: "json",
         ...params,
       }),
 
