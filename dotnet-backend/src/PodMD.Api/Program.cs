@@ -55,6 +55,11 @@ builder.Services.AddScoped<PodMD.Domain.Interfaces.IFileStorage, PodMD.Applicati
 builder.Services.AddScoped<PodMD.Application.Interfaces.IKnowledgeFileRepository, PodMD.Infrastructure.Repositories.KnowledgeFileRepository>();
 builder.Services.AddScoped<PodMD.Application.Interfaces.IKnowledgeFileService, PodMD.Application.Services.KnowledgeFileService>();
 
+// API key services
+builder.Services.AddScoped<PodMD.Application.Interfaces.IApiKeyRepository, PodMD.Infrastructure.Repositories.ApiKeyRepository>();
+builder.Services.AddScoped<PodMD.Application.Interfaces.IApiKeyService, PodMD.Application.Services.ApiKeyService>();
+builder.Services.AddScoped<PodMD.Application.Interfaces.IApiKeyAuthenticationService, PodMD.Application.Services.ApiKeyAuthenticationService>();
+
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 builder.Services.AddSwaggerGen(c =>
@@ -68,6 +73,14 @@ builder.Services.AddSwaggerGen(c =>
         Scheme = "Bearer"
     });
 
+    c.AddSecurityDefinition("ApiKey", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+    {
+        Description = "API Key authentication using the X-API-Key header. Enter your API key in the text input below.",
+        Name = "X-API-Key",
+        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+        Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey
+    });
+
     c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
     {
         {
@@ -77,6 +90,17 @@ builder.Services.AddSwaggerGen(c =>
                 {
                     Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
                     Id = "Bearer"
+                }
+            },
+            new string[] {}
+        },
+        {
+            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+            {
+                Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                {
+                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                    Id = "ApiKey"
                 }
             },
             new string[] {}
@@ -122,6 +146,10 @@ app.UseHttpsRedirection();
 app.UseCors("AllowAll");
 
 app.UseAuthentication();
+
+// Add API key authentication middleware (before authorization)
+app.UseMiddleware<PodMD.Api.Middleware.ApiKeyAuthenticationMiddleware>();
+
 app.UseAuthorization();
 
 app.MapControllers();

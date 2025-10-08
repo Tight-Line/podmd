@@ -11,6 +11,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     {
     }
 
+    public DbSet<ApiKey> ApiKeys { get; set; }
     public DbSet<KubeCluster> KubeClusters { get; set; }
     public DbSet<JenkinsServers> JenkinsServers { get; set; }
     public DbSet<KnowledgeBase> KnowledgeBases { get; set; }
@@ -77,5 +78,22 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             .HasIndex(kf => new { kf.KnowledgeBaseId, kf.FileName })
             .IsUnique()
             .HasFilter("[IsDeleted] = 0");
+
+        // Configure ApiKey entity
+        builder.Entity<ApiKey>().ToTable("ApiKeys");
+        builder.Entity<ApiKey>().Property(k => k.UserId).IsRequired();
+        builder.Entity<ApiKey>().Property(k => k.HashedKey).HasMaxLength(64).IsRequired();
+        builder.Entity<ApiKey>().Property(k => k.UsageCount).IsRequired().HasDefaultValue(0);
+        builder.Entity<ApiKey>().Property(k => k.Status).HasMaxLength(20).IsRequired();
+        builder.Entity<ApiKey>().Property(k => k.CreatedAt).IsRequired();
+        builder.Entity<ApiKey>().HasIndex(k => k.HashedKey).IsUnique();
+        builder.Entity<ApiKey>().HasIndex(k => k.UserId);
+
+        // Foreign key to ApplicationUser with CASCADE delete
+        builder.Entity<ApiKey>()
+            .HasOne(k => k.User)
+            .WithMany()
+            .HasForeignKey(k => k.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }
