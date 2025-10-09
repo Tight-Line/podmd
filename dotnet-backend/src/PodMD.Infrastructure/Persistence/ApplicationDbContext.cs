@@ -64,7 +64,6 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
         builder.Entity<KnowledgeFile>().Property(kf => kf.FileSize).IsRequired();
         builder.Entity<KnowledgeFile>().Property(kf => kf.CreatedAt).IsRequired();
         builder.Entity<KnowledgeFile>().Property(kf => kf.UpdatedAt).IsRequired();
-        builder.Entity<KnowledgeFile>().Property(kf => kf.IsDeleted).IsRequired().HasDefaultValue(false);
 
         // Foreign key to KnowledgeBase with CASCADE delete
         builder.Entity<KnowledgeFile>()
@@ -73,11 +72,10 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             .HasForeignKey(kf => kf.KnowledgeBaseId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // Unique constraint: only one non-deleted file with same name per KnowledgeBase
+        // Unique constraint: only one file with same name per KnowledgeBase
         builder.Entity<KnowledgeFile>()
             .HasIndex(kf => new { kf.KnowledgeBaseId, kf.FileName })
-            .IsUnique()
-            .HasFilter("[IsDeleted] = 0");
+            .IsUnique();
 
         // Configure ApiKey entity
         builder.Entity<ApiKey>().ToTable("ApiKeys");

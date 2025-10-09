@@ -3,6 +3,7 @@ using Minio;
 using Minio.DataModel.Args;
 using PodMD.Application.Configuration;
 using PodMD.Domain.Interfaces;
+using System.Text.RegularExpressions;
 
 namespace PodMD.Application.Services;
 
@@ -68,6 +69,29 @@ public class MinioFileStorage : IFileStorage
             await _minioClient.GetObjectAsync(args);
 
             memoryStream.Position = 0;
+
+            // Check if the response is actually an XML error response
+            if (IsErrorXmlResponse(memoryStream))
+            {
+                var errorMessage = ExtractErrorMessage(memoryStream);
+                _logger.LogError("MinIO returned error XML for {StorageKey}: {ErrorMessage}", storageKey, errorMessage);
+
+                if (errorMessage.Contains("AccessDenied", StringComparison.OrdinalIgnoreCase) ||
+                    errorMessage.Contains("403", StringComparison.OrdinalIgnoreCase))
+                {
+                    throw new UnauthorizedAccessException($"Access denied downloading file: {storageKey}");
+                }
+                else if (errorMessage.Contains("NoSuchKey", StringComparison.OrdinalIgnoreCase) ||
+                         errorMessage.Contains("404", StringComparison.OrdinalIgnoreCase))
+                {
+                    throw new FileNotFoundException($"File not found: {storageKey}");
+                }
+                else
+                {
+                    throw new InvalidOperationException($"MinIO error: {errorMessage}");
+                }
+            }
+
             _logger.LogInformation("File downloaded from MinIO: {StorageKey}", storageKey);
             return memoryStream;
         }
@@ -76,7 +100,7 @@ public class MinioFileStorage : IFileStorage
             _logger.LogWarning("File not found in MinIO: {StorageKey}", storageKey);
             throw new FileNotFoundException($"File not found: {storageKey}");
         }
-        catch (Exception ex)
+        catch (Exception ex) when (!(ex is FileNotFoundException || ex is UnauthorizedAccessException))
         {
             _logger.LogError(ex, "Error downloading file from MinIO: {StorageKey}", storageKey);
             throw new InvalidOperationException($"Failed to download file: {ex.Message}", ex);
@@ -155,6 +179,57 @@ public class MinioFileStorage : IFileStorage
         {
             _logger.LogError(ex, "Error ensuring MinIO bucket exists: {BucketName}", _settings.BucketName);
             throw new InvalidOperationException($"Failed to ensure bucket exists: {ex.Message}", ex);
+        }
+    }
+
+    private bool IsErrorXmlResponse(Stream memoryStream)
+    {
+        try
+        {
+            if (memoryStream.Length == 0)
+                return false;
+
+            memoryStream.Position = 0;
+            using var reader = new StreamReader(memoryStream, leaveOpen: true);
+            var content = reader.ReadToEnd();
+            memoryStream.Position = 0; // Reset for potential reuse
+
+            // Check if it starts with XML declaration and contains error elements
+            return content.TrimStart().StartsWith("<?xml", StringComparison.OrdinalIgnoreCase) &&
+                   (content.Contains("<Error>", StringComparison.OrdinalIgnoreCase) ||
+                    content.Contains("AccessDenied", StringComparison.OrdinalIgnoreCase) ||
+                    content.Contains("403", StringComparison.Ordinal) ||
+                    content.Contains("404", StringComparison.Ordinal) ||
+                    content.Contains("NoSuchKey", StringComparison.OrdinalIgnoreCase));
+        }
+        catch
+        {
+            // If we can't read it, assume it's not an error
+            memoryStream.Position = 0;
+            return false;
+        }
+    }
+
+    private string ExtractErrorMessage(Stream memoryStream)
+    {
+        try
+        {
+            memoryStream.Position = 0;
+            using var reader = new StreamReader(memoryStream, leaveOpen: true);
+            var content = reader.ReadToEnd();
+
+            // Try to extract the Code and Message from the XML
+            var codeMatch = Regex.Match(content, @"<Code>(.*?)</Code>", RegexOptions.IgnoreCase);
+            var messageMatch = Regex.Match(content, @"<Message>(.*?)</Message>", RegexOptions.IgnoreCase);
+
+            var code = codeMatch.Success ? codeMatch.Groups[1].Value : "Unknown";
+            var message = messageMatch.Success ? messageMatch.Groups[1].Value : content.Length > 200 ? content.Substring(0, 200) + "..." : content;
+
+            return $"Code: {code}, Message: {message}";
+        }
+        catch (Exception ex)
+        {
+            return $"Failed to parse error response: {ex.Message}";
         }
     }
 }

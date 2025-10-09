@@ -30,19 +30,10 @@ public class KnowledgeFileRepository : IKnowledgeFileRepository
             .ToListAsync();
     }
 
-    public async Task<IEnumerable<KnowledgeFile>> GetNotDeletedByKnowledgeBaseIdAsync(Guid knowledgeBaseId)
-    {
-        return await _context.KnowledgeFiles
-            .Include(kf => kf.KnowledgeBase)
-            .Where(kf => kf.KnowledgeBaseId == knowledgeBaseId && !kf.IsDeleted)
-            .OrderBy(kf => kf.CreatedAt)
-            .ToListAsync();
-    }
-
     public async Task<KnowledgeFile?> GetByKnowledgeBaseIdAndFileNameAsync(Guid knowledgeBaseId, string fileName)
     {
         return await _context.KnowledgeFiles
-            .FirstOrDefaultAsync(kf => kf.KnowledgeBaseId == knowledgeBaseId && kf.FileName == fileName && !kf.IsDeleted);
+            .FirstOrDefaultAsync(kf => kf.KnowledgeBaseId == knowledgeBaseId && kf.FileName == fileName);
     }
 
     public async Task<KnowledgeFile> CreateAsync(KnowledgeFile knowledgeFile)
@@ -71,17 +62,5 @@ public class KnowledgeFileRepository : IKnowledgeFileRepository
         await _context.SaveChangesAsync();
     }
 
-    public async Task SoftDeleteAsync(Guid id)
-    {
-        var knowledgeFile = await _context.KnowledgeFiles.FindAsync(id);
-        if (knowledgeFile == null)
-        {
-            throw new KeyNotFoundException($"Knowledge file with ID '{id}' not found.");
-        }
 
-        knowledgeFile.IsDeleted = true;
-        knowledgeFile.UpdatedAt = DateTime.UtcNow;
-
-        await _context.SaveChangesAsync();
-    }
 }

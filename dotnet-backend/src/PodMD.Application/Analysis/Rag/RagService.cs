@@ -129,7 +129,7 @@ public class RagService : IRagService
         try
         {
             // Get all files for this knowledge base
-            var files = await _knowledgeFileRepository.GetNotDeletedByKnowledgeBaseIdAsync(knowledgeBaseId);
+            var files = await _knowledgeFileRepository.GetByKnowledgeBaseIdAsync(knowledgeBaseId);
             if (!files.Any())
             {
                 _logger.LogDebug("No files in knowledge base {KbName} ({KbId})", knowledgeBaseName, knowledgeBaseId);

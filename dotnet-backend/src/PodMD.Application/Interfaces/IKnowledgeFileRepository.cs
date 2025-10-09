@@ -6,10 +6,8 @@ public interface IKnowledgeFileRepository
 {
     Task<KnowledgeFile?> GetByIdAsync(Guid id);
     Task<IEnumerable<KnowledgeFile>> GetByKnowledgeBaseIdAsync(Guid knowledgeBaseId);
-    Task<IEnumerable<KnowledgeFile>> GetNotDeletedByKnowledgeBaseIdAsync(Guid knowledgeBaseId);
     Task<KnowledgeFile?> GetByKnowledgeBaseIdAndFileNameAsync(Guid knowledgeBaseId, string fileName);
     Task<KnowledgeFile> CreateAsync(KnowledgeFile knowledgeFile);
     Task<KnowledgeFile> UpdateAsync(KnowledgeFile knowledgeFile);
     Task DeleteAsync(Guid id);
-    Task SoftDeleteAsync(Guid id);
 }

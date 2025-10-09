@@ -32,9 +32,6 @@ public class KnowledgeFile
     [Required]
     public DateTime UpdatedAt { get; set; }
 
-    [Required]
-    public bool IsDeleted { get; set; } = false;
-
     // Navigation property
     [ForeignKey(nameof(KnowledgeBaseId))]
     public KnowledgeBase KnowledgeBase { get; set; } = null!;

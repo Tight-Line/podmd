@@ -61,8 +61,7 @@ public class KnowledgeFileService : IKnowledgeFileService
                     ContentType = request.ContentType,
                     FileSize = request.FileSize,
                     CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow,
-                    IsDeleted = false
+                    UpdatedAt = DateTime.UtcNow
                 };
 
                 // Save to database
@@ -98,7 +97,7 @@ public class KnowledgeFileService : IKnowledgeFileService
 
     public async Task<IEnumerable<KnowledgeFileDto>> GetByKnowledgeBaseIdAsync(Guid knowledgeBaseId)
     {
-        var files = await _repository.GetNotDeletedByKnowledgeBaseIdAsync(knowledgeBaseId);
+        var files = await _repository.GetByKnowledgeBaseIdAsync(knowledgeBaseId);
 
         return files.Select(kf => new KnowledgeFileDto(
             kf.Id,
@@ -114,7 +113,7 @@ public class KnowledgeFileService : IKnowledgeFileService
     {
         var knowledgeFile = await _repository.GetByIdAsync(id);
 
-        if (knowledgeFile == null || knowledgeFile.IsDeleted)
+        if (knowledgeFile == null)
         {
             return null;
         }
@@ -133,7 +132,7 @@ public class KnowledgeFileService : IKnowledgeFileService
     {
         // Get existing file
         var existingFile = await _repository.GetByIdAsync(fileId);
-        if (existingFile == null || existingFile.IsDeleted)
+        if (existingFile == null)
         {
             throw new KeyNotFoundException($"Knowledge file with ID '{fileId}' not found.");
         }
@@ -215,19 +214,23 @@ public class KnowledgeFileService : IKnowledgeFileService
             throw new KeyNotFoundException($"Knowledge file with ID '{id}' not found.");
         }
 
-        // Soft delete in database
-        await _repository.SoftDeleteAsync(id);
+        // Get storage key for cleanup
+        string storageKey = knowledgeFile.StorageKey;
 
-        // Delete from storage
+        // Hard delete from database
+        await _repository.DeleteAsync(id);
+
+        // Delete from storage (hard delete is irreversible, so be cautious)
         try
         {
-            await _fileStorage.DeleteAsync(knowledgeFile.StorageKey);
+            await _fileStorage.DeleteAsync(storageKey);
             _logger.LogInformation("File deleted successfully: {FileName} (ID: {FileId})", knowledgeFile.FileName, id);
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Failed to delete file from storage: {StorageKey}", knowledgeFile.StorageKey);
-            // File is already soft deleted in DB, so this is not critical failure
+            _logger.LogError(ex, "Failed to delete file from storage after database deletion: {StorageKey}", storageKey);
+            // Database record is already removed, this is serious - log as error
+            throw new InvalidOperationException($"File deleted from database but storage cleanup failed: {storageKey}", ex);
         }
     }
 
