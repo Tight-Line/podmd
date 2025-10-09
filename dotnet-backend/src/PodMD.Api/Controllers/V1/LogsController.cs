@@ -35,8 +35,7 @@ public class LogsController : ControllerBase
                 request.TailLines,
                 request.SinceSeconds,
                 request.Previous,
-                request.LimitBytes,
-                request.IncludeDescription
+                request.LimitBytes
             );
 
             var result = await _logService.GetPodLogsAsync(clusterId, parameters);
@@ -88,8 +87,7 @@ public class LogsController : ControllerBase
             var parameters = new DeploymentLogParameters(
                 request.Namespace,
                 request.DeploymentName,
-                request.Fallback,
-                request.IncludeDescription
+                request.Fallback
             );
 
             var result = await _logService.GetDeploymentLogsAsync(clusterId, parameters);

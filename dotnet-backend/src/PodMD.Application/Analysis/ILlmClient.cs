@@ -4,7 +4,7 @@ namespace PodMD.Application.Analysis;
 
 public interface ILlmClient
 {
-    Task<string> AnalyzeLogsAsync(string logs, string prompt, CancellationToken cancellationToken = default);
+    Task<string> AnalyzeLogsAsync(string logs, string prompt, string? description = null, CancellationToken cancellationToken = default);
     Task<bool> IsServiceAvailableAsync(CancellationToken cancellationToken = default);
 }
 

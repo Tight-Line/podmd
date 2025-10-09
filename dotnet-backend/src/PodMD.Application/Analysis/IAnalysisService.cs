@@ -10,8 +10,8 @@ public enum ResultFormat
 
 public interface IAnalysisService
 {
-    Task<AnalysisResponse> AnalyzePodLogsAsync(Guid clusterId, string namespaceName, string podName, string? containerName = null, int? tailLines = null, int? sinceSeconds = null, bool? previous = null, int? limitBytes = null, bool? includeDescription = null, CancellationToken cancellationToken = default);
-    Task<AnalysisResponse> AnalyzeDeploymentLogsAsync(Guid clusterId, string namespaceName, string deploymentName, bool? fallback = null, bool? includeDescription = null, CancellationToken cancellationToken = default);
+    Task<AnalysisResponse> AnalyzePodLogsAsync(Guid clusterId, string namespaceName, string podName, string? containerName = null, int? tailLines = null, int? sinceSeconds = null, bool? previous = null, int? limitBytes = null, CancellationToken cancellationToken = default);
+    Task<AnalysisResponse> AnalyzeDeploymentLogsAsync(Guid clusterId, string namespaceName, string deploymentName, bool? fallback = null, CancellationToken cancellationToken = default);
 }
 
 public class AnalysisResponse

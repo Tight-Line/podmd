@@ -36,7 +36,6 @@ public class AnalysisController : ControllerBase
                 request.SinceSeconds,
                 request.Previous,
                 request.LimitBytes,
-                request.IncludeDescription,
                 HttpContext.RequestAborted);
 
             var response = new AnalysisResponseDto
@@ -135,7 +134,6 @@ public class AnalysisController : ControllerBase
                 request.Namespace,
                 request.DeploymentName,
                 request.Fallback,
-                request.IncludeDescription,
                 HttpContext.RequestAborted);
 
             var response = new AnalysisResponseDto

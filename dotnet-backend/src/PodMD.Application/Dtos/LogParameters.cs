@@ -9,15 +9,13 @@ public record PodLogParameters(
     int? TailLines,
     int? SinceSeconds,
     bool? Previous,
-    int? LimitBytes,
-    bool? IncludeDescription
+    int? LimitBytes
 );
 
 public record DeploymentLogParameters(
     string Namespace,
     string DeploymentName,
-    bool? Fallback,
-    bool? IncludeDescription
+    bool? Fallback
 );
 
 public record LogResult(

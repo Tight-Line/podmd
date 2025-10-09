@@ -9,7 +9,5 @@ public record DeploymentAnalysisRequestDto(
     [Required]
     string DeploymentName,
 
-    bool? Fallback,
-
-    bool? IncludeDescription
+    bool? Fallback
 );

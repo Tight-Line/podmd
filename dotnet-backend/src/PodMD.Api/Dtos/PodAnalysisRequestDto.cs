@@ -17,7 +17,5 @@ public record PodAnalysisRequestDto(
 
     bool? Previous,
 
-    int? LimitBytes,
-
-    bool? IncludeDescription
+    int? LimitBytes
 );

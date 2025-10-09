@@ -18,9 +18,7 @@ public record PodLogRequest(
 
     bool? Previous,
 
-    int? LimitBytes,
-
-    bool? IncludeDescription
+    int? LimitBytes
 );
 
 public record DeploymentLogRequest(
@@ -30,9 +28,7 @@ public record DeploymentLogRequest(
     [Required]
     string DeploymentName,
 
-    bool? Fallback,
-
-    bool? IncludeDescription
+    bool? Fallback
 );
 
 public record LogResponse(

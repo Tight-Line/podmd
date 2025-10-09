@@ -44,11 +44,14 @@ public class LlmClient : ILlmClient, IDisposable
 {
     private readonly HttpClient _httpClient;
     private readonly LlmSettings _settings;
+    private readonly ILogger<LlmClient> _logger;
 
     public LlmClient(IOptions<LlmSettings> settings, ILogger<LlmClient> logger)
     {
         ArgumentNullException.ThrowIfNull(settings);
         _settings = settings.Value ?? throw new ArgumentNullException(nameof(settings));
+
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
         _settings.Validate(logger);
 
@@ -62,12 +65,17 @@ public class LlmClient : ILlmClient, IDisposable
         _httpClient.DefaultRequestHeaders.Add("User-Agent", "PodMD/1.0");
     }
 
-    public async Task<string> AnalyzeLogsAsync(string logs, string prompt, CancellationToken cancellationToken = default)
+    public async Task<string> AnalyzeLogsAsync(string logs, string prompt, string? description = null, CancellationToken cancellationToken = default)
     {
+        // Prepend description to logs if available
+        var fullLogs = string.IsNullOrWhiteSpace(description) ? logs : $"{description}\n\n{logs}";
+
+
+
         var fullPrompt = $@"{prompt}
 
 Log content to analyze:
-{logs}";
+{fullLogs}";
 
         var request = new OpenAiApiRequest
         {

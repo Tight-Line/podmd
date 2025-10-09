@@ -62,7 +62,6 @@ public class AnalysisService : IAnalysisService
         int? sinceSeconds = null,
         bool? previous = null,
         int? limitBytes = null,
-        bool? includeDescription = null,
         CancellationToken cancellationToken = default)
     {
         try
@@ -75,23 +74,18 @@ public class AnalysisService : IAnalysisService
                 tailLines,
                 sinceSeconds,
                 previous,
-                limitBytes,
-                includeDescription
+                limitBytes
             );
 
             var logResult = await _logService.GetPodLogsAsync(clusterId, parameters);
 
             if (string.IsNullOrWhiteSpace(logResult.Logs))
             {
-                return new AnalysisResponse
-                {
-                    Success = false,
-                    Message = "No logs found for analysis"
-                };
+                _logger.LogWarning("No logs found for pod {PodName} in namespace {Namespace}, proceeding with description-only analysis", parameters.PodName, parameters.Namespace);
             }
 
-            // Analyze logs
-            var analysisResponse = await AnalyzeLogsAsync(clusterId, logResult.Logs, cancellationToken);
+            // Analyze logs with description context (proceed even with empty logs)
+            var analysisResponse = await AnalyzeLogsAsync(clusterId, logResult.Logs ?? "", logResult.Description, cancellationToken);
             return analysisResponse;
         }
         catch (Exception ex)
@@ -109,7 +103,6 @@ public class AnalysisService : IAnalysisService
         string namespaceName,
         string deploymentName,
         bool? fallback = null,
-        bool? includeDescription = null,
         CancellationToken cancellationToken = default)
     {
         try
@@ -118,23 +111,18 @@ public class AnalysisService : IAnalysisService
             var parameters = new DeploymentLogParameters(
                 namespaceName,
                 deploymentName,
-                fallback,
-                includeDescription
+                fallback
             );
 
             var logResult = await _logService.GetDeploymentLogsAsync(clusterId, parameters);
 
             if (string.IsNullOrWhiteSpace(logResult.Logs))
             {
-                return new AnalysisResponse
-                {
-                    Success = false,
-                    Message = "No logs found for analysis"
-                };
+                _logger.LogWarning("No logs found for deployment {DeploymentName} in namespace {Namespace}, proceeding with description-only analysis", parameters.DeploymentName, parameters.Namespace);
             }
 
-            // Analyze logs
-            var analysisResponse = await AnalyzeLogsAsync(clusterId, logResult.Logs, cancellationToken);
+            // Analyze logs with description context (proceed even with empty logs)
+            var analysisResponse = await AnalyzeLogsAsync(clusterId, logResult.Logs ?? "", logResult.Description, cancellationToken);
             return analysisResponse;
         }
         catch (Exception ex)
@@ -147,7 +135,7 @@ public class AnalysisService : IAnalysisService
         }
     }
 
-    private async Task<AnalysisResponse> AnalyzeLogsAsync(Guid clusterId, string logs, CancellationToken cancellationToken)
+    private async Task<AnalysisResponse> AnalyzeLogsAsync(Guid clusterId, string logs, string? description, CancellationToken cancellationToken)
     {
         // Get cluster configuration
         var cluster = await _clusterRepository.GetByIdAsync(clusterId);
@@ -196,10 +184,13 @@ Return a JSON object in this format: {jsonSchema}";
         _logger.LogInformation("Instructions: {instr}", instructions);
 
         // Call LLM
-        var llmResponse = await _llmClient.AnalyzeLogsAsync(logs, instructions, cancellationToken);
+        var llmResponse = await _llmClient.AnalyzeLogsAsync(logs, instructions, description, cancellationToken);
 
         // Clean LLM response (remove markdown code blocks, etc.)
         var cleanResponse = CleanLlmResponse(llmResponse);
+
+        // Log the cleaned LLM response for debugging
+        _logger.LogInformation("LLM response for cluster {ClusterId}: {CleanResponse}", clusterId, cleanResponse);
 
         if (string.IsNullOrWhiteSpace(cleanResponse))
         {
