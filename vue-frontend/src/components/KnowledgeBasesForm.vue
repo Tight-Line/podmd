@@ -49,36 +49,64 @@
                 <div
                   v-for="file in existingFiles"
                   :key="file.id"
-                  class="flex items-center justify-between bg-white border border-slate-200 rounded-md px-3 py-2 hover:shadow-sm transition-colors"
+                  class="bg-white border border-slate-200 rounded-md px-3 py-2 hover:shadow-sm transition-colors"
                 >
-                  <!-- File Info -->
-                  <div class="flex items-center gap-3 flex-1 min-w-0">
-                    <div class="flex-shrink-0">
-                      <i class="pi pi-file text-slate-400 text-lg"></i>
-                    </div>
-                    <div class="flex-1 min-w-0">
-                      <h5 class="text-sm font-medium text-slate-900 truncate">{{ file.fileName }}</h5>
-                      <div class="flex items-center gap-4 text-xs text-slate-500 mt-1">
-                        <span>{{ formatFileSize(file.fileSize || 0) }}</span>
-                        <span>{{ getFileTypeDisplay(file.contentType || '') }}</span>
-                        <span v-if="file.createdAt">Uploaded {{ formatDate(file.createdAt) }}</span>
+                  <!-- File Info and Actions -->
+                  <div class="flex items-center justify-between">
+                    <!-- File Info -->
+                    <div class="flex items-center gap-3 flex-1 min-w-0">
+                      <div class="flex-shrink-0">
+                        <i class="pi pi-file text-slate-400 text-lg"></i>
                       </div>
+                      <div class="flex-1 min-w-0">
+                        <h5 class="text-sm font-medium text-slate-900 truncate">{{ file.fileName }}</h5>
+                        <div class="flex items-center gap-4 text-xs text-slate-500 mt-1">
+                          <span>{{ formatFileSize(file.fileSize || 0) }}</span>
+                          <span>{{ getFileTypeDisplay(file.contentType || '') }}</span>
+                          <span v-if="file.createdAt">Uploaded {{ formatDate(file.createdAt) }}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="flex items-center gap-2 flex-shrink-0">
+                      <!-- Replace FileUpload -->
+                      <FileUpload
+                        mode="basic"
+                        name="file"
+                        :multiple="false"
+                        accept=".pdf,.txt,.json,.md,.doc,.docx"
+                        :maxFileSize="10485760"
+                        customUpload
+                        @uploader="(event) => handleFileReplace(event, file)"
+                        :disabled="!!replacingFile"
+                        auto
+                        chooseLabel=" "
+                        chooseIcon="pi pi-upload"
+                        class="text-slate-500 hover:text-slate-700 p-1 rounded transition-colors border-0 bg-transparent hover:bg-slate-100"
+                      />
+                      <!-- Delete Button -->
+                      <Button
+                        @click="confirmDeleteFile(file)"
+                        icon="pi pi-trash"
+                        severity="danger"
+                        text
+                        size="small"
+                        v-tooltip="'Delete file'"
+                        class="p-1"
+                        :disabled="!!replacingFile"
+                      />
                     </div>
                   </div>
 
-                  <!-- Actions -->
-                  <div class="flex items-center gap-2 flex-shrink-0">
-                    <!-- Replace Button (if needed in future) -->
-                    <!-- Delete Button -->
-                    <Button
-                      @click="confirmDeleteFile(file)"
-                      icon="pi pi-trash"
-                      severity="danger"
-                      text
-                      size="small"
-                      v-tooltip="'Delete file'"
-                      class="p-2"
-                    />
+                  <!-- Replacement Progress (shows only for the file being replaced) -->
+                  <div v-if="replacingFile && replacingFile.id === file.id" class="mt-2">
+                    <div class="bg-blue-50 rounded-lg p-2 border border-blue-200">
+                      <div class="flex items-center gap-2">
+                        <i class="pi pi-spin pi-spinner text-blue-600 text-sm"></i>
+                        <span class="text-sm text-blue-900">Replacing file...</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -158,6 +186,8 @@
       />
     </Dialog>
 
+
+
     <!-- Delete Confirmation Dialog -->
     <Dialog
       v-model:visible="deleteDialogVisible"
@@ -205,6 +235,7 @@ import InputText from 'primevue/inputtext'
 import Textarea from 'primevue/textarea'
 import Button from 'primevue/button'
 import Dialog from 'primevue/dialog'
+import FileUpload from 'primevue/fileupload'
 import KnowledgeBaseFileUpload from './KnowledgeBaseFileUpload.vue'
 import type { KnowledgeFileDto } from '../api/Api'
 import { authenticatedApi } from '../api/authenticatedApi'
@@ -260,6 +291,7 @@ const uploadDialogVisible = ref(false)
 const loadingFiles = ref(false)
 const existingFiles = ref<KnowledgeFileDto[]>([])
 const deletingFile = ref(false)
+const replacingFile = ref<KnowledgeFileDto | null>(null)
 
 // Dialogs
 const deleteDialogVisible = ref(false)
@@ -318,6 +350,45 @@ const confirmDeleteFile = (file: KnowledgeFileDto) => {
 const closeDeleteDialog = () => {
   deleteDialogVisible.value = false
   fileToDelete.value = null
+}
+
+const handleFileReplace = async (event: any, oldFile: KnowledgeFileDto) => { // eslint-disable-line @typescript-eslint/no-explicit-any
+  if (!event.files?.[0]) return
+
+  const newFile = event.files[0]
+  replacingFile.value = oldFile
+
+  try {
+    // Create FormData with the uploaded file
+    const formData = new FormData()
+    formData.append('file', newFile)
+
+    // Use the replace API endpoint
+    await authenticatedApi.api.v1FilesReplaceUpdate(
+      oldFile.id!,
+      formData
+    )
+
+    // Show detailed success message
+    toast.add({
+      severity: 'success',
+      summary: 'Success',
+      detail: `File "${oldFile.fileName}" successfully replaced with "${newFile.name}"`,
+      life: 5000
+    })
+
+    await fetchFiles()
+  } catch (error: unknown) {
+    const err = error as { response?: { data?: { detail?: string } } }
+    toast.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: err?.response?.data?.detail || 'Failed to replace file',
+      life: 5000
+    })
+  } finally {
+    replacingFile.value = null
+  }
 }
 
 const deleteFile = async () => {

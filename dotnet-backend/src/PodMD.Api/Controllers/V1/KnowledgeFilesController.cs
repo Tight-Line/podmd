@@ -190,7 +190,7 @@ public class KnowledgeFileController : ControllerBase
             memoryStream.Position = 0;
 
             var request = new UpdateKnowledgeFileDto(
-                newFileName,
+                file.FileName,  // Always use the uploaded file's name for replacement
                 file.ContentType,
                 file.Length,
                 memoryStream);
