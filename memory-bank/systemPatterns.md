@@ -114,15 +114,18 @@
 
 ## Critical Implementation Paths
 
-### Log Analysis Flow
+### Log Analysis Flow with RAG
 
 1. **API Request**: Client submits log analysis request with source details
 2. **Authentication**: JWT validation and RBAC permission check
-3. **Source Integration**: Connect to Kubernetes/GitLab via encrypted credentials
-4. **Log Retrieval**: Fetch logs using appropriate client (K8s client, GitLab API)
-5. **Analysis Processing**: LLM processes logs with RAG context
-6. **Response Generation**: Format structured analysis with recommendations
-7. **Audit Logging**: Record analysis event for compliance
+3. **RAG Context Retrieval**: Query connected knowledge bases for relevant context
+4. **Knowledge Processing**: Extract, chunk, and process all knowledge base documents
+5. **Context Integration**: Include ALL chunks within token limits in LLM prompt
+6. **Source Integration**: Connect to Kubernetes/GitLab via encrypted credentials
+7. **Log Retrieval**: Fetch logs using appropriate client (K8s API, GitLab API)
+8. **Enhanced Analysis**: LLM processes logs enriched with domain-specific knowledge
+9. **Response Generation**: Format structured analysis with context-aware recommendations
+10. **Audit Logging**: Record analysis event with knowledge base usage metrics
 
 ### Authentication Flow
 

@@ -9,6 +9,7 @@ PodMD addresses the critical need for intelligent, automated troubleshooting in 
 - **Fragmented triage**: Logs scattered across Kubernetes, Jenkins, and GitLab with no unified analysis
 - **Slow manual debugging**: Engineers waste hours sifting through verbose, unstructured logs
 - **Generic AI responses**: Standard LLM analysis lacks domain-specific context and organizational knowledge
+- **Knowledge silos**: Troubleshooting guides, runbooks, and organizational documentation not leveraged in automated analysis
 - **Insecure credential management**: API tokens and credentials stored insecurely or hardcoded
 
 ## How It Works
