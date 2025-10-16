@@ -1,0 +1,42 @@
+services:
+  python-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8081:8081"
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - python-backend-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  postgres:
+    image: postgres:15-alpine
+    ports:
+      - "5432:5432"
+    env_file:
+      - .env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-podmd_user} -d ${POSTGRES_DB:-podmd_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - python-backend-network
+
+volumes:
+  postgres_data:
+
+networks:
+  python-backend-network:
+    driver: bridge

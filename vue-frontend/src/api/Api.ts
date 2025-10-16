@@ -10,274 +10,325 @@
  * ---------------------------------------------------------------
  */
 
-export interface AnalysisResponseDto {
-  success?: boolean;
-  data?: any;
-  message?: string | null;
-  resultFormat?: string | null;
+/**
+ * AnalysisResponse
+ * Response model for log analysis.
+ */
+export interface AnalysisResponse {
+  /** Success */
+  success: boolean;
+  /** Message */
+  message: string;
+  /** Data */
+  data?: object | null;
 }
 
-export interface ApiKeyDto {
-  /** @format uuid */
-  id?: string;
-  userId?: string | null;
-  permissions?: string | null;
-  /** @format int32 */
-  usageLimit?: number | null;
-  /** @format int32 */
-  usageCount?: number;
-  status?: string | null;
-  /** @format date-time */
-  createdAt?: string;
-  /** @format date-time */
-  lastUsedAt?: string | null;
-}
-
-export interface CreateApiKeyRequest {
-  permissions?: string | null;
-  /** @format int32 */
-  usageLimit?: number | null;
-}
-
-export interface CreateApiKeyResponse {
-  /** @format uuid */
-  id?: string;
-  key?: string | null;
-  permissions?: string | null;
-  /** @format int32 */
-  usageLimit?: number | null;
-}
-
-export interface CreateJenkinsServersRequest {
-  name?: string | null;
-  server?: string | null;
-  instructions?: string | null;
-  responseFormat?: string | null;
-  username?: string | null;
-  apiToken?: string | null;
-}
-
-export interface CreateKnowledgeBaseDto {
-  name?: string | null;
-  description?: string | null;
-}
-
-export interface CreateKubeClusterRequest {
-  name?: string | null;
-  server?: string | null;
-  instructions?: string | null;
-  responseFormat?: string | null;
-  bearerToken?: string | null;
-  certificateAuthorityPem?: string | null;
-  insecureSkipTlsVerify?: boolean;
-  defaultNamespace?: string | null;
-}
-
-export interface DeploymentAnalysisRequestDto {
-  namespace?: string | null;
-  deploymentName?: string | null;
-  fallback?: boolean | null;
-  includeDescription?: boolean | null;
-}
-
+/**
+ * DeploymentLogRequest
+ * Request for retrieving logs from failed pods in a deployment.
+ */
 export interface DeploymentLogRequest {
-  namespace?: string | null;
-  deploymentName?: string | null;
+  /**
+   * Namespace
+   * Kubernetes namespace
+   */
+  namespace: string;
+  /**
+   * Deployment Name
+   * Name of the deployment
+   */
+  deployment_name: string;
+  /**
+   * Fallback
+   * Fallback to any pod if no failed pods found
+   * @default false
+   */
   fallback?: boolean | null;
-  includeDescription?: boolean | null;
 }
 
-export interface JenkinsServersResponse {
-  /** @format uuid */
-  id?: string;
-  name?: string | null;
-  type?: string | null;
-  server?: string | null;
+/** HTTPValidationError */
+export interface HTTPValidationError {
+  /** Detail */
+  detail?: ValidationError[];
+}
+
+/**
+ * KubeClusterCreate
+ * Schema for creating a new Kubernetes cluster with base source fields.
+ */
+export interface KubeClusterCreate {
+  /**
+   * Name
+   * @minLength 1
+   * @maxLength 100
+   */
+  name: string;
+  /**
+   * Server
+   * Kubernetes API server URL
+   */
+  server: string;
+  /**
+   * Bearer Token
+   * Bearer token for cluster authentication
+   */
+  bearer_token: string;
+  /**
+   * Certificate Authority Pem
+   * CA certificate PEM
+   */
+  certificate_authority_pem?: string | null;
+  /**
+   * Insecure Skip Tls Verify
+   * Skip TLS verification
+   * @default false
+   */
+  insecure_skip_tls_verify?: boolean;
+  /**
+   * Default Namespace
+   * Default Kubernetes namespace
+   */
+  default_namespace?: string | null;
+  /**
+   * Instructions
+   * Instructions for AI processing
+   */
   instructions?: string | null;
-  responseFormat?: string | null;
-  /** @format date-time */
-  createdAt?: string;
-  /** @format date-time */
-  updatedAt?: string;
-  username?: string | null;
+  /**
+   * Response Format
+   * Response format for AI
+   */
+  response_format?: string | null;
 }
 
-export interface KnowledgeBaseDto {
-  /** @format uuid */
-  id?: string;
-  name?: string | null;
-  description?: string | null;
-  /** @format date-time */
-  createdAt?: string;
-  /** @format date-time */
-  updatedAt?: string;
+/**
+ * KubeClusterListResponse
+ * Schema for Kubernetes cluster list responses.
+ */
+export interface KubeClusterListResponse {
+  /** Kube Clusters */
+  kube_clusters: KubeClusterResponse[];
 }
 
-export interface KnowledgeBaseWithSourcesDto {
-  /** @format uuid */
-  id?: string;
-  name?: string | null;
-  description?: string | null;
-  /** @format date-time */
-  createdAt?: string;
-  /** @format date-time */
-  updatedAt?: string;
-  sources?: SourceReadDto[] | null;
-}
-
-export interface KnowledgeFileDto {
-  /** @format uuid */
-  id?: string;
-  /** @format uuid */
-  knowledgeBaseId?: string;
-  fileName?: string | null;
-  contentType?: string | null;
-  /** @format int64 */
-  fileSize?: number;
-  /** @format date-time */
-  createdAt?: string;
-  /** @format date-time */
-  updatedAt?: string;
-}
-
+/**
+ * KubeClusterResponse
+ * Schema for Kubernetes cluster response data - combined Source and KubeCluster fields.
+ */
 export interface KubeClusterResponse {
-  /** @format uuid */
-  id?: string;
-  name?: string | null;
-  type?: string | null;
-  server?: string | null;
+  /**
+   * Id
+   * @format uuid
+   */
+  id: string;
+  /** Type */
+  type: string;
+  /** Name */
+  name: string;
+  /** Server */
+  server: string;
+  /** Key Version */
+  key_version: number;
+  /** Instructions */
   instructions?: string | null;
-  responseFormat?: string | null;
-  /** @format date-time */
-  createdAt?: string;
-  /** @format date-time */
-  updatedAt?: string;
-  hasBearerToken?: boolean;
-  hasCertificateAuthority?: boolean;
-  insecureSkipTlsVerify?: boolean;
-  defaultNamespace?: string | null;
+  /** Response Format */
+  response_format?: string | null;
+  /**
+   * User Id
+   * @format uuid
+   */
+  user_id: string;
+  /**
+   * Created At
+   * @format date-time
+   */
+  created_at: string;
+  /** Updated At */
+  updated_at?: string | null;
+  /** Bearer Token Enc */
+  bearer_token_enc: string;
+  /** Certificate Authority Pem */
+  certificate_authority_pem?: string | null;
+  /**
+   * Insecure Skip Tls Verify
+   * @default false
+   */
+  insecure_skip_tls_verify?: boolean;
+  /** Default Namespace */
+  default_namespace?: string | null;
 }
 
+/**
+ * KubeClusterUpdate
+ * Schema for updating an existing Kubernetes cluster.
+ */
+export interface KubeClusterUpdate {
+  /** Name */
+  name?: string | null;
+  /** Server */
+  server?: string | null;
+  /** Key Version */
+  key_version?: number | null;
+  /** Instructions */
+  instructions?: string | null;
+  /** Response Format */
+  response_format?: string | null;
+  /** Bearer Token */
+  bearer_token?: string | null;
+  /** Certificate Authority Pem */
+  certificate_authority_pem?: string | null;
+  /** Insecure Skip Tls Verify */
+  insecure_skip_tls_verify?: boolean | null;
+  /** Default Namespace */
+  default_namespace?: string | null;
+}
+
+/**
+ * LogMetadata
+ * Metadata about the log source.
+ */
 export interface LogMetadata {
-  podName?: string | null;
-  containerName?: string | null;
-  namespace?: string | null;
-  deploymentName?: string | null;
+  /** Pod Name */
+  pod_name: string;
+  /** Container Name */
+  container_name: string | null;
+  /** Namespace */
+  namespace: string;
+  /** Deployment Name */
+  deployment_name: string | null;
 }
 
+/**
+ * LogResponse
+ * Response containing logs and metadata.
+ */
 export interface LogResponse {
-  logs?: string | null;
-  description?: string | null;
-  metadata?: LogMetadata;
+  /** Logs */
+  logs: string;
+  /** Description */
+  description: string;
+  /** Metadata about the log source. */
+  metadata: LogMetadata;
 }
 
-export interface LoginRequest {
-  email?: string | null;
-  password?: string | null;
-}
-
-export interface PodAnalysisRequestDto {
-  namespace?: string | null;
-  podName?: string | null;
-  containerName?: string | null;
-  /** @format int32 */
-  tailLines?: number | null;
-  /** @format int32 */
-  sinceSeconds?: number | null;
-  previous?: boolean | null;
-  /** @format int32 */
-  limitBytes?: number | null;
-  includeDescription?: boolean | null;
-}
-
+/**
+ * PodLogRequest
+ * Request for retrieving logs from a specific pod.
+ */
 export interface PodLogRequest {
-  namespace?: string | null;
-  podName?: string | null;
-  containerName?: string | null;
-  /** @format int32 */
-  tailLines?: number | null;
-  /** @format int32 */
-  sinceSeconds?: number | null;
+  /**
+   * Namespace
+   * Kubernetes namespace
+   */
+  namespace: string;
+  /**
+   * Pod Name
+   * Name of the pod
+   */
+  pod_name: string;
+  /**
+   * Container Name
+   * Container name (optional)
+   */
+  container_name?: string | null;
+  /**
+   * Tail Lines
+   * Number of lines to retrieve from end
+   */
+  tail_lines?: number | null;
+  /**
+   * Since Seconds
+   * Return logs newer than this many seconds
+   */
+  since_seconds?: number | null;
+  /**
+   * Previous
+   * Return previous terminated container logs
+   * @default false
+   */
   previous?: boolean | null;
-  /** @format int32 */
-  limitBytes?: number | null;
-  includeDescription?: boolean | null;
+  /**
+   * Limit Bytes
+   * Maximum bytes of logs to return
+   */
+  limit_bytes?: number | null;
 }
 
-export interface ProblemDetails {
-  type?: string | null;
-  title?: string | null;
-  /** @format int32 */
-  status?: number | null;
-  detail?: string | null;
-  instance?: string | null;
-  [key: string]: any;
+/**
+ * Token
+ * Schema for JWT token response.
+ */
+export interface Token {
+  /** Access Token */
+  access_token: string;
+  /**
+   * Token Type
+   * @default "bearer"
+   */
+  token_type?: string;
 }
 
-export interface RegisterRequest {
-  firstName?: string | null;
-  lastName?: string | null;
-  email?: string | null;
-  password?: string | null;
+/**
+ * UserCreate
+ * Schema for user registration.
+ */
+export interface UserCreate {
+  /**
+   * Email
+   * @format email
+   */
+  email: string;
+  /** Password */
+  password: string;
 }
 
-export interface SourceReadDto {
-  /** @format uuid */
-  id?: string;
-  name?: string | null;
-  type?: string | null;
-  server?: string | null;
-  instructions?: string | null;
-  responseFormat?: string | null;
-  /** @format date-time */
-  createdAt?: string;
-  /** @format date-time */
-  updatedAt?: string;
+/**
+ * UserLogin
+ * Schema for user login.
+ */
+export interface UserLogin {
+  /**
+   * Email
+   * @format email
+   */
+  email: string;
+  /** Password */
+  password: string;
 }
 
-export interface UpdateApiKeyRequest {
-  permissions?: string | null;
-  /** @format int32 */
-  usageLimit?: number | null;
-  status?: string | null;
+/**
+ * UserResponse
+ * Schema for user response data.
+ */
+export interface UserResponse {
+  /**
+   * Email
+   * @format email
+   */
+  email: string;
+  /**
+   * Id
+   * @format uuid
+   */
+  id: string;
+  /** Is Active */
+  is_active: boolean;
+  /**
+   * Created At
+   * @format date-time
+   */
+  created_at: string;
+  /** Updated At */
+  updated_at?: string | null;
 }
 
-export interface UpdateJenkinsServersRequest {
-  name?: string | null;
-  server?: string | null;
-  instructions?: string | null;
-  responseFormat?: string | null;
-  username?: string | null;
-  apiToken?: string | null;
-}
-
-export interface UpdateKnowledgeBaseDto {
-  /** @format uuid */
-  id?: string;
-  name?: string | null;
-  description?: string | null;
-}
-
-export interface UpdateKubeClusterRequest {
-  name?: string | null;
-  server?: string | null;
-  instructions?: string | null;
-  responseFormat?: string | null;
-  bearerToken?: string | null;
-  certificateAuthorityPem?: string | null;
-  insecureSkipTlsVerify?: boolean | null;
-  defaultNamespace?: string | null;
-}
-
-export interface UserDto {
-  id?: string | null;
-  firstName?: string | null;
-  lastName?: string | null;
-  email?: string | null;
-  /** @format date-time */
-  createdAt?: string;
-  /** @format date-time */
-  updatedAt?: string | null;
+/** ValidationError */
+export interface ValidationError {
+  /** Location */
+  loc: (string | number)[];
+  /** Message */
+  msg: string;
+  /** Error Type */
+  type: string;
 }
 
 export type QueryParamsType = Record<string | number, any>;
@@ -536,127 +587,170 @@ export class HttpClient<SecurityDataType = unknown> {
 }
 
 /**
- * @title PodMD.Api
- * @version 1.0
+ * @title PodMD Python Backend
+ * @version 0.1.0
+ *
+ * Experimental Python implementation using FastAPI and PostgreSQL with user authentication
  */
 export class Api<
   SecurityDataType extends unknown,
 > extends HttpClient<SecurityDataType> {
-  api = {
+  /**
+   * @description Root endpoint providing basic API information. Returns: dict: Welcome message and available endpoints
+   *
+   * @name RootGet
+   * @summary Root
+   * @request GET:/
+   */
+  rootGet = (params: RequestParams = {}) =>
+    this.request<any, any>({
+      path: `/`,
+      method: "GET",
+      format: "json",
+      ...params,
+    });
+
+  auth = {
     /**
-     * No description
+     * @description Register a new user.
      *
-     * @tags Analysis
-     * @name V1ClustersAnalysisPodsCreate
-     * @request POST:/api/v1/clusters/{clusterId}/Analysis/pods
+     * @tags authentication
+     * @name RegisterUserAuthRegisterPost
+     * @summary Register User
+     * @request POST:/auth/register
+     */
+    registerUserAuthRegisterPost: (
+      data: UserCreate,
+      params: RequestParams = {},
+    ) =>
+      this.request<UserResponse, HTTPValidationError>({
+        path: `/auth/register`,
+        method: "POST",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Login and return JWT access token.
+     *
+     * @tags authentication
+     * @name LoginForAccessTokenAuthLoginPost
+     * @summary Login For Access Token
+     * @request POST:/auth/login
+     */
+    loginForAccessTokenAuthLoginPost: (
+      data: UserLogin,
+      params: RequestParams = {},
+    ) =>
+      this.request<Token, HTTPValidationError>({
+        path: `/auth/login`,
+        method: "POST",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+  };
+  users = {
+    /**
+     * @description Get current user profile.
+     *
+     * @tags users
+     * @name ReadUsersMeUsersMeGet
+     * @summary Read Users Me
+     * @request GET:/users/me
      * @secure
      */
-    v1ClustersAnalysisPodsCreate: (
+    readUsersMeUsersMeGet: (params: RequestParams = {}) =>
+      this.request<UserResponse, any>({
+        path: `/users/me`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+  };
+  kubeClusters = {
+    /**
+     * @description List all Kubernetes clusters for the current user.
+     *
+     * @tags kube-clusters
+     * @name ListKubeClustersKubeClustersGet
+     * @summary List Kube Clusters
+     * @request GET:/kube-clusters/
+     * @secure
+     */
+    listKubeClustersKubeClustersGet: (params: RequestParams = {}) =>
+      this.request<KubeClusterListResponse, any>({
+        path: `/kube-clusters/`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Create a new Kubernetes cluster with source configuration.
+     *
+     * @tags kube-clusters
+     * @name CreateKubeClusterKubeClustersPost
+     * @summary Create Kube Cluster
+     * @request POST:/kube-clusters/
+     * @secure
+     */
+    createKubeClusterKubeClustersPost: (
+      data: KubeClusterCreate,
+      params: RequestParams = {},
+    ) =>
+      this.request<KubeClusterResponse, HTTPValidationError>({
+        path: `/kube-clusters/`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Get a specific Kubernetes cluster by ID.
+     *
+     * @tags kube-clusters
+     * @name GetKubeClusterKubeClustersClusterIdGet
+     * @summary Get Kube Cluster
+     * @request GET:/kube-clusters/{cluster_id}
+     * @secure
+     */
+    getKubeClusterKubeClustersClusterIdGet: (
       clusterId: string,
-      data: PodAnalysisRequestDto,
       params: RequestParams = {},
     ) =>
-      this.request<AnalysisResponseDto, ProblemDetails>({
-        path: `/api/v1/clusters/${clusterId}/Analysis/pods`,
-        method: "POST",
-        body: data,
+      this.request<KubeClusterResponse, HTTPValidationError>({
+        path: `/kube-clusters/${clusterId}`,
+        method: "GET",
         secure: true,
-        type: ContentType.Json,
         format: "json",
         ...params,
       }),
 
     /**
-     * No description
+     * @description Update an existing Kubernetes cluster.
      *
-     * @tags Analysis
-     * @name V1ClustersAnalysisDeploymentsCreate
-     * @request POST:/api/v1/clusters/{clusterId}/Analysis/deployments
+     * @tags kube-clusters
+     * @name UpdateKubeClusterKubeClustersClusterIdPut
+     * @summary Update Kube Cluster
+     * @request PUT:/kube-clusters/{cluster_id}
      * @secure
      */
-    v1ClustersAnalysisDeploymentsCreate: (
+    updateKubeClusterKubeClustersClusterIdPut: (
       clusterId: string,
-      data: DeploymentAnalysisRequestDto,
+      data: KubeClusterUpdate,
       params: RequestParams = {},
     ) =>
-      this.request<AnalysisResponseDto, ProblemDetails>({
-        path: `/api/v1/clusters/${clusterId}/Analysis/deployments`,
-        method: "POST",
-        body: data,
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags ApiKeys
-     * @name ApikeysCreate
-     * @request POST:/api/apikeys
-     * @secure
-     */
-    apikeysCreate: (data: CreateApiKeyRequest, params: RequestParams = {}) =>
-      this.request<CreateApiKeyResponse, ProblemDetails>({
-        path: `/api/apikeys`,
-        method: "POST",
-        body: data,
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags ApiKeys
-     * @name ApikeysList
-     * @request GET:/api/apikeys
-     * @secure
-     */
-    apikeysList: (params: RequestParams = {}) =>
-      this.request<ApiKeyDto[], ProblemDetails>({
-        path: `/api/apikeys`,
-        method: "GET",
-        secure: true,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags ApiKeys
-     * @name ApikeysDetail
-     * @request GET:/api/apikeys/{id}
-     * @secure
-     */
-    apikeysDetail: (id: string, params: RequestParams = {}) =>
-      this.request<ApiKeyDto, ProblemDetails>({
-        path: `/api/apikeys/${id}`,
-        method: "GET",
-        secure: true,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags ApiKeys
-     * @name ApikeysUpdate
-     * @request PUT:/api/apikeys/{id}
-     * @secure
-     */
-    apikeysUpdate: (
-      id: string,
-      data: UpdateApiKeyRequest,
-      params: RequestParams = {},
-    ) =>
-      this.request<ApiKeyDto, ProblemDetails>({
-        path: `/api/apikeys/${id}`,
+      this.request<KubeClusterResponse, HTTPValidationError>({
+        path: `/kube-clusters/${clusterId}`,
         method: "PUT",
         body: data,
         secure: true,
@@ -666,498 +760,41 @@ export class Api<
       }),
 
     /**
-     * No description
+     * @description Delete a Kubernetes cluster.
      *
-     * @tags ApiKeys
-     * @name ApikeysDelete
-     * @request DELETE:/api/apikeys/{id}
+     * @tags kube-clusters
+     * @name DeleteKubeClusterKubeClustersClusterIdDelete
+     * @summary Delete Kube Cluster
+     * @request DELETE:/kube-clusters/{cluster_id}
      * @secure
      */
-    apikeysDelete: (id: string, params: RequestParams = {}) =>
-      this.request<void, ProblemDetails>({
-        path: `/api/apikeys/${id}`,
+    deleteKubeClusterKubeClustersClusterIdDelete: (
+      clusterId: string,
+      params: RequestParams = {},
+    ) =>
+      this.request<void, HTTPValidationError>({
+        path: `/kube-clusters/${clusterId}`,
         method: "DELETE",
         secure: true,
         ...params,
       }),
 
     /**
-     * No description
+     * @description Retrieve logs from a specific pod. Requires authentication and cluster ownership.
      *
-     * @tags Auth
-     * @name V1AuthRegisterCreate
-     * @request POST:/api/v1/auth/register
+     * @tags kube-cluster-logs
+     * @name GetPodLogsKubeClustersClusterIdLogsPodsPost
+     * @summary Get Pod Logs
+     * @request POST:/kube-clusters/{cluster_id}/logs/pods
      * @secure
      */
-    v1AuthRegisterCreate: (data: RegisterRequest, params: RequestParams = {}) =>
-      this.request<void, any>({
-        path: `/api/v1/auth/register`,
-        method: "POST",
-        body: data,
-        secure: true,
-        type: ContentType.Json,
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Auth
-     * @name V1AuthLoginCreate
-     * @request POST:/api/v1/auth/login
-     * @secure
-     */
-    v1AuthLoginCreate: (data: LoginRequest, params: RequestParams = {}) =>
-      this.request<void, any>({
-        path: `/api/v1/auth/login`,
-        method: "POST",
-        body: data,
-        secure: true,
-        type: ContentType.Json,
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Auth
-     * @name V1AuthMeList
-     * @request GET:/api/v1/auth/me
-     * @secure
-     */
-    v1AuthMeList: (params: RequestParams = {}) =>
-      this.request<void, any>({
-        path: `/api/v1/auth/me`,
-        method: "GET",
-        secure: true,
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Auth
-     * @name V1AuthValidateKeyCreate
-     * @request POST:/api/v1/auth/validate-key
-     * @secure
-     */
-    v1AuthValidateKeyCreate: (params: RequestParams = {}) =>
-      this.request<UserDto, ProblemDetails>({
-        path: `/api/v1/auth/validate-key`,
-        method: "POST",
-        secure: true,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Clusters
-     * @name V1ClustersCreate
-     * @request POST:/api/v1/Clusters
-     * @secure
-     */
-    v1ClustersCreate: (
-      data: CreateKubeClusterRequest,
-      params: RequestParams = {},
-    ) =>
-      this.request<KubeClusterResponse, ProblemDetails>({
-        path: `/api/v1/Clusters`,
-        method: "POST",
-        body: data,
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Clusters
-     * @name V1ClustersList
-     * @request GET:/api/v1/Clusters
-     * @secure
-     */
-    v1ClustersList: (params: RequestParams = {}) =>
-      this.request<KubeClusterResponse[], ProblemDetails>({
-        path: `/api/v1/Clusters`,
-        method: "GET",
-        secure: true,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Clusters
-     * @name V1ClustersDetail
-     * @request GET:/api/v1/Clusters/{id}
-     * @secure
-     */
-    v1ClustersDetail: (id: string, params: RequestParams = {}) =>
-      this.request<KubeClusterResponse, ProblemDetails>({
-        path: `/api/v1/Clusters/${id}`,
-        method: "GET",
-        secure: true,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Clusters
-     * @name V1ClustersUpdate
-     * @request PUT:/api/v1/Clusters/{id}
-     * @secure
-     */
-    v1ClustersUpdate: (
-      id: string,
-      data: UpdateKubeClusterRequest,
-      params: RequestParams = {},
-    ) =>
-      this.request<KubeClusterResponse, ProblemDetails>({
-        path: `/api/v1/Clusters/${id}`,
-        method: "PUT",
-        body: data,
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Clusters
-     * @name V1ClustersDelete
-     * @request DELETE:/api/v1/Clusters/{id}
-     * @secure
-     */
-    v1ClustersDelete: (id: string, params: RequestParams = {}) =>
-      this.request<void, ProblemDetails>({
-        path: `/api/v1/Clusters/${id}`,
-        method: "DELETE",
-        secure: true,
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags JenkinsServers
-     * @name V1JenkinsServersCreate
-     * @request POST:/api/v1/jenkins-servers
-     * @secure
-     */
-    v1JenkinsServersCreate: (
-      data: CreateJenkinsServersRequest,
-      params: RequestParams = {},
-    ) =>
-      this.request<JenkinsServersResponse, ProblemDetails>({
-        path: `/api/v1/jenkins-servers`,
-        method: "POST",
-        body: data,
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags JenkinsServers
-     * @name V1JenkinsServersList
-     * @request GET:/api/v1/jenkins-servers
-     * @secure
-     */
-    v1JenkinsServersList: (params: RequestParams = {}) =>
-      this.request<JenkinsServersResponse[], ProblemDetails>({
-        path: `/api/v1/jenkins-servers`,
-        method: "GET",
-        secure: true,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags JenkinsServers
-     * @name V1JenkinsServersDetail
-     * @request GET:/api/v1/jenkins-servers/{id}
-     * @secure
-     */
-    v1JenkinsServersDetail: (id: string, params: RequestParams = {}) =>
-      this.request<JenkinsServersResponse, ProblemDetails>({
-        path: `/api/v1/jenkins-servers/${id}`,
-        method: "GET",
-        secure: true,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags JenkinsServers
-     * @name V1JenkinsServersUpdate
-     * @request PUT:/api/v1/jenkins-servers/{id}
-     * @secure
-     */
-    v1JenkinsServersUpdate: (
-      id: string,
-      data: UpdateJenkinsServersRequest,
-      params: RequestParams = {},
-    ) =>
-      this.request<JenkinsServersResponse, ProblemDetails>({
-        path: `/api/v1/jenkins-servers/${id}`,
-        method: "PUT",
-        body: data,
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags JenkinsServers
-     * @name V1JenkinsServersDelete
-     * @request DELETE:/api/v1/jenkins-servers/{id}
-     * @secure
-     */
-    v1JenkinsServersDelete: (id: string, params: RequestParams = {}) =>
-      this.request<void, ProblemDetails>({
-        path: `/api/v1/jenkins-servers/${id}`,
-        method: "DELETE",
-        secure: true,
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags KnowledgeBases
-     * @name V1KnowledgeBasesCreate
-     * @request POST:/api/v1/knowledge-bases
-     * @secure
-     */
-    v1KnowledgeBasesCreate: (
-      data: CreateKnowledgeBaseDto,
-      params: RequestParams = {},
-    ) =>
-      this.request<KnowledgeBaseDto, ProblemDetails>({
-        path: `/api/v1/knowledge-bases`,
-        method: "POST",
-        body: data,
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags KnowledgeBases
-     * @name V1KnowledgeBasesList
-     * @request GET:/api/v1/knowledge-bases
-     * @secure
-     */
-    v1KnowledgeBasesList: (params: RequestParams = {}) =>
-      this.request<KnowledgeBaseDto[], ProblemDetails>({
-        path: `/api/v1/knowledge-bases`,
-        method: "GET",
-        secure: true,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags KnowledgeBases
-     * @name V1KnowledgeBasesDetail
-     * @request GET:/api/v1/knowledge-bases/{id}
-     * @secure
-     */
-    v1KnowledgeBasesDetail: (id: string, params: RequestParams = {}) =>
-      this.request<KnowledgeBaseWithSourcesDto, ProblemDetails>({
-        path: `/api/v1/knowledge-bases/${id}`,
-        method: "GET",
-        secure: true,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags KnowledgeBases
-     * @name V1KnowledgeBasesUpdate
-     * @request PUT:/api/v1/knowledge-bases/{id}
-     * @secure
-     */
-    v1KnowledgeBasesUpdate: (
-      id: string,
-      data: UpdateKnowledgeBaseDto,
-      params: RequestParams = {},
-    ) =>
-      this.request<KnowledgeBaseDto, ProblemDetails>({
-        path: `/api/v1/knowledge-bases/${id}`,
-        method: "PUT",
-        body: data,
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags KnowledgeBases
-     * @name V1KnowledgeBasesDelete
-     * @request DELETE:/api/v1/knowledge-bases/{id}
-     * @secure
-     */
-    v1KnowledgeBasesDelete: (id: string, params: RequestParams = {}) =>
-      this.request<void, ProblemDetails>({
-        path: `/api/v1/knowledge-bases/${id}`,
-        method: "DELETE",
-        secure: true,
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags KnowledgeBases
-     * @name V1KnowledgeBasesSourcesList
-     * @request GET:/api/v1/knowledge-bases/{id}/sources
-     * @secure
-     */
-    v1KnowledgeBasesSourcesList: (id: string, params: RequestParams = {}) =>
-      this.request<SourceReadDto[], ProblemDetails>({
-        path: `/api/v1/knowledge-bases/${id}/sources`,
-        method: "GET",
-        secure: true,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags KnowledgeFile
-     * @name V1FilesReplaceUpdate
-     * @request PUT:/api/v1/files/{fileId}/replace
-     * @secure
-     */
-    v1FilesReplaceUpdate: (
-      fileId: string,
-      data: {
-        /** @format binary */
-        file?: File;
-      },
-      query?: {
-        newFileName?: string;
-      },
-      params: RequestParams = {},
-    ) =>
-      this.request<KnowledgeFileDto, ProblemDetails>({
-        path: `/api/v1/files/${fileId}/replace`,
-        method: "PUT",
-        query: query,
-        body: data,
-        secure: true,
-        type: ContentType.FormData,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags KnowledgeFile
-     * @name V1FilesDelete
-     * @request DELETE:/api/v1/files/{fileId}
-     * @secure
-     */
-    v1FilesDelete: (fileId: string, params: RequestParams = {}) =>
-      this.request<void, ProblemDetails>({
-        path: `/api/v1/files/${fileId}`,
-        method: "DELETE",
-        secure: true,
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags KnowledgeFiles
-     * @name V1KnowledgebasesFilesCreate
-     * @request POST:/api/v1/knowledgebases/{knowledgeBaseId}/files
-     * @secure
-     */
-    v1KnowledgebasesFilesCreate: (
-      knowledgeBaseId: string,
-      data: {
-        files?: File[];
-      },
-      params: RequestParams = {},
-    ) =>
-      this.request<KnowledgeFileDto[], ProblemDetails>({
-        path: `/api/v1/knowledgebases/${knowledgeBaseId}/files`,
-        method: "POST",
-        body: data,
-        secure: true,
-        type: ContentType.FormData,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags KnowledgeFiles
-     * @name V1KnowledgebasesFilesList
-     * @request GET:/api/v1/knowledgebases/{knowledgeBaseId}/files
-     * @secure
-     */
-    v1KnowledgebasesFilesList: (
-      knowledgeBaseId: string,
-      params: RequestParams = {},
-    ) =>
-      this.request<KnowledgeFileDto[], ProblemDetails>({
-        path: `/api/v1/knowledgebases/${knowledgeBaseId}/files`,
-        method: "GET",
-        secure: true,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Logs
-     * @name V1ClustersLogsPodsCreate
-     * @request POST:/api/v1/clusters/{clusterId}/Logs/pods
-     * @secure
-     */
-    v1ClustersLogsPodsCreate: (
+    getPodLogsKubeClustersClusterIdLogsPodsPost: (
       clusterId: string,
       data: PodLogRequest,
       params: RequestParams = {},
     ) =>
-      this.request<LogResponse, ProblemDetails>({
-        path: `/api/v1/clusters/${clusterId}/Logs/pods`,
+      this.request<LogResponse, HTTPValidationError>({
+        path: `/kube-clusters/${clusterId}/logs/pods`,
         method: "POST",
         body: data,
         secure: true,
@@ -1167,20 +804,21 @@ export class Api<
       }),
 
     /**
-     * No description
+     * @description Retrieve logs from failed pods in a deployment. Finds failed pods (not Running/Succeeded) in the specified deployment and returns logs from the first failed pod. Requires authentication and cluster ownership.
      *
-     * @tags Logs
-     * @name V1ClustersLogsDeploymentsCreate
-     * @request POST:/api/v1/clusters/{clusterId}/Logs/deployments
+     * @tags kube-cluster-logs
+     * @name GetDeploymentLogsKubeClustersClusterIdLogsDeploymentsPost
+     * @summary Get Deployment Logs
+     * @request POST:/kube-clusters/{cluster_id}/logs/deployments
      * @secure
      */
-    v1ClustersLogsDeploymentsCreate: (
+    getDeploymentLogsKubeClustersClusterIdLogsDeploymentsPost: (
       clusterId: string,
       data: DeploymentLogRequest,
       params: RequestParams = {},
     ) =>
-      this.request<LogResponse, ProblemDetails>({
-        path: `/api/v1/clusters/${clusterId}/Logs/deployments`,
+      this.request<LogResponse, HTTPValidationError>({
+        path: `/kube-clusters/${clusterId}/logs/deployments`,
         method: "POST",
         body: data,
         secure: true,
@@ -1190,62 +828,66 @@ export class Api<
       }),
 
     /**
-     * No description
+     * @description Analyze logs from a specific pod using LLM. Retrieves logs from the pod and uses OpenAI to identify errors and provide solutions. Requires authentication and cluster ownership.
      *
-     * @tags Sources
-     * @name V1SourcesKnowledgeBasesList
-     * @request GET:/api/v1/sources/{sourceId}/knowledge-bases
+     * @tags kube-cluster-analysis
+     * @name AnalyzePodLogsKubeClustersClusterIdAnalyzePodsPost
+     * @summary Analyze Pod Logs
+     * @request POST:/kube-clusters/{cluster_id}/analyze/pods
      * @secure
      */
-    v1SourcesKnowledgeBasesList: (
-      sourceId: string,
+    analyzePodLogsKubeClustersClusterIdAnalyzePodsPost: (
+      clusterId: string,
+      data: PodLogRequest,
       params: RequestParams = {},
     ) =>
-      this.request<KnowledgeBaseDto[], ProblemDetails>({
-        path: `/api/v1/sources/${sourceId}/knowledge-bases`,
-        method: "GET",
+      this.request<AnalysisResponse, HTTPValidationError>({
+        path: `/kube-clusters/${clusterId}/analyze/pods`,
+        method: "POST",
+        body: data,
         secure: true,
+        type: ContentType.Json,
         format: "json",
         ...params,
       }),
 
     /**
-     * No description
+     * @description Analyze logs from failed pods in a deployment using LLM. Finds failed pods, retrieves their logs, and uses OpenAI to identify errors and provide solutions. Requires authentication and cluster ownership.
      *
-     * @tags Sources
-     * @name V1SourcesKnowledgeBasesCreate
-     * @request POST:/api/v1/sources/{sourceId}/knowledge-bases/{knowledgeBaseId}
+     * @tags kube-cluster-analysis
+     * @name AnalyzeDeploymentLogsKubeClustersClusterIdAnalyzeDeploymentsPost
+     * @summary Analyze Deployment Logs
+     * @request POST:/kube-clusters/{cluster_id}/analyze/deployments
      * @secure
      */
-    v1SourcesKnowledgeBasesCreate: (
-      sourceId: string,
-      knowledgeBaseId: string,
+    analyzeDeploymentLogsKubeClustersClusterIdAnalyzeDeploymentsPost: (
+      clusterId: string,
+      data: DeploymentLogRequest,
       params: RequestParams = {},
     ) =>
-      this.request<void, ProblemDetails>({
-        path: `/api/v1/sources/${sourceId}/knowledge-bases/${knowledgeBaseId}`,
+      this.request<AnalysisResponse, HTTPValidationError>({
+        path: `/kube-clusters/${clusterId}/analyze/deployments`,
         method: "POST",
+        body: data,
         secure: true,
+        type: ContentType.Json,
+        format: "json",
         ...params,
       }),
-
+  };
+  health = {
     /**
-     * No description
+     * @description Health check endpoint returning system status. Returns: dict: Health status with timestamp and service info
      *
-     * @tags Sources
-     * @name V1SourcesKnowledgeBasesDelete
-     * @request DELETE:/api/v1/sources/{sourceId}/knowledge-bases/{knowledgeBaseId}
-     * @secure
+     * @name HealthCheckHealthGet
+     * @summary Health Check
+     * @request GET:/health
      */
-    v1SourcesKnowledgeBasesDelete: (
-      sourceId: string,
-      knowledgeBaseId: string,
-      params: RequestParams = {},
-    ) =>
-      this.request<void, ProblemDetails>({
-        path: `/api/v1/sources/${sourceId}/knowledge-bases/${knowledgeBaseId}`,
-        method: "DELETE",
-        secure: true,
+    healthCheckHealthGet: (params: RequestParams = {}) =>
+      this.request<any, any>({
+        path: `/health`,
+        method: "GET",
+        format: "json",
         ...params,
       }),
   };

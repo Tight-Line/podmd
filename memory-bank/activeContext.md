@@ -48,7 +48,8 @@
 - ✅ **Backward Compatibility**: Zero breaking changes to existing functionality
 - ✅ **Code Quality**: Eliminated redundancies and record constructor issues
 - ✅ **Clean Architecture**: Proper inheritance patterns across all layers
-- ✅ **Kubernetes Clusters Management Interface**: Complete split-panel UI with full CRUD, security, and auto-selection
+- ✅ **Kubernetes Clusters Frontend Interface**: Complete split-panel UI with full CRUD, security, and auto-selection
+- ✅ **Kubernetes Cluster CRUD Endpoints**: Complete Python backend implementation with unified Source+KubeCluster API
 - ✅ **Split-Panel Master-Detail**: Modern resizable panels with intelligent cluster selection
 - ✅ **Security-Conscious Design**: Sensitive fields hidden in read-only mode with status badges
 - ✅ **Component Architecture**: Clean separation with KubeClustersView, List, and Form components
@@ -144,6 +145,17 @@
 - ✅ **Code Quality Improvement**: Consolidated description generation logic across all analysis methods
 - ✅ **Production Documentation**: Complete implementation guide at `cline_docs/always-include-descriptions-improvement.md`
 
+- ✅ **Kubernetes Deployment Logs Service**: Complete Python backend implementation for fetching logs from failed pods in deployments
+- ✅ **Multi-Container Service Architecture**: KubeLogService, LogsRouter, Pydantic schemas with async FastAPI endpoints
+- ✅ **Intelligent Pod Selection**: Automatically finds failed pods (not Running/Succeeded) with fallback to first pod if no failures
+- ✅ **Rich Deployment Context**: Includes deployment info, pod status, container states, recent Kubernetes events, and resource metadata
+- ✅ **Kubernetes Client Integration**: Secure API client creation with authentication (bearer tokens), SSL/TLS configuration, and CA certificates
+- ✅ **Production-Ready Error Handling**: Proper ValueError/HTTPException responses with 401/502/404 status code mapping
+- ✅ **Async FastAPI Integration**: Compatible with existing Python backend architecture using SqlAlchemy async queries
+- ✅ **Deployment-Specific Endpoint**: `POST /kube-clusters/{cluster_id}/logs/deployments` with namespace/deployment name parameters
+- ✅ **Real-World Testing**: Successfully tested with live Kubernetes cluster showing actual application logs and failure diagnostics
+- ✅ **Clean Code Production Ready**: Production-ready async service methods, proper separation of concerns, and comprehensive logging
+
 ## Next Steps
 
 ### Immediate (Comprehensive Testing & Production Readiness)
@@ -196,6 +208,40 @@
 - **Decision**: MySQL with EF Core code-first migrations + TPT inheritance
 - **Rationale**: Relational integrity, enterprise adoption, good performance
 - **Status**: Database created with ApiKeys, Sources, KubeClusters, JenkinsServers, KnowledgeBases, KnowledgeBaseSource tables
+
+### Experimental Python Backend Architecture
+
+- **Framework**: FastAPI with Python 3.11+ and PostgreSQL
+- **Purpose**: Parallel experimental implementation for alternative technology evaluation
+- **Networking**: Separate docker network and port (8081) to avoid conflicts with .NET backend
+- **Database**: PostgreSQL (independent from MySQL) for advanced JSON capabilities
+- **Structure**: Project ready for incremental feature development (auth, AI analysis, K8s integration)
+- ✅ **Source Entity Implementation**: Complete Source entity added to Python backend with user ownership
+- ✅ **SQLAlchemy Models**: Source model with foreign key relationship to User table
+- ✅ **Pydantic Schemas**: SourceCreate, SourceUpdate, SourceResponse with proper validation
+- ✅ **Database Migration**: Alembic migration applied - sources table created with FK constraints
+- ✅ **User Ownership Security**: Sources linked by user_id with CASCADE delete for data integrity
+- ✅ **Bidirectional Relationships**: Source <-> User navigation properties properly defined
+
+- ✅ **KubeCluster Entity Integration**: Complete Kubernetes cluster configuration support with one-to-one relationship
+- ✅ **One-to-One Architecture**: KubeCluster shares Source ID for tight coupling (Option B implementation)
+- ✅ **Kubernetes-Specific Fields**: bearer_token_enc, certificate_authority_pem, insecure_skip_tls_verify, default_namespace
+- ✅ **Schema & Migration**: Pydantic schemas + Alembic migration executed successfully
+- ✅ **Database Verification**: kube_clusters table created with proper FK constraints and confirmed in PostgreSQL
+- ✅ **Relationship Architecture**: Bidirectional navigation between Source.kube_cluster and KubeCluster.source
+- ✅ **Security Approach**: Sensitive fields encrypted for secure storage
+- ✅ **Cascade Delete**: KubeClusters automatically deleted when corresponding Source is removed
+- ✅ **Circular Import Resolution**: User.sources relationship temporarily removed to resolve SQLAlchemy mapper conflicts
+- ✅ **API Health Confirmation**: Full stack restart successful, user registration tested and working
+
+- ✅ **Complete LLM Log Analysis Pipeline**: End-to-end AI-powered Kubernetes log analysis from API request to actionable insights
+- ✅ **FastAPI + OpenAI Integration**: Complete async service implementation with JWT authentication and error handling
+- ✅ **Deployment Analysis Endpoint**: `/kube-clusters/{cluster_id}/analyze/deployments` with rich deployment context
+- ✅ **Multi-Service Architecture**: KubeLogService + AnalysisService + LLMClient coordinated through LogsRouter
+- ✅ **Container-Based Deployment**: Complete docker-compose orchestration with PostgreSQL database
+- ✅ **Independent Python Stack**: Full parallel implementation to .NET backend with equivalent functionality
+- ✅ **Production-Ready Features**: Health checks, structured logging, environment configuration, and API documentation
+- ✅ **Real-World Validation**: Successfully analyzed actual Kubernetes deployment failures with accurate error identification
 
 ### Frontend Architecture
 
@@ -273,3 +319,11 @@
 - **Sidebar UX**: Smaller text enhances information density and professional appearance
 - **Navigation Prioritization**: Making Log Analysis the home page aligns with user workflows
 - **Icon Consistency**: Search icons better represent log analysis than generic navigation icons
+
+### Experimental Python Backend
+
+- **FastAPI Implementation**: Complete minimal API with health endpoint using Python 3.11+ and PostgreSQL
+- **Independent Architecture**: Parallel experimental backend running on port 8081 vs .NET on 8080
+- **Docker Orchestration**: Separate docker-compose.yml with PostgreSQL database
+- **Production Ready Structure**: Proper logging, environment config, health checks, and API documentation
+- **Future Extensibility**: Framework ready for adding authentication, AI analysis, and Kubernetes integration

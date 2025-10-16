@@ -191,7 +191,7 @@ import Tab from 'primevue/tab'
 import TabPanels from 'primevue/tabpanels'
 import TabPanel from 'primevue/tabpanel'
 import Button from 'primevue/button'
-import type { KubeClusterResponse, CreateKubeClusterRequest, UpdateKubeClusterRequest } from '../api/Api'
+import type { KubeClusterResponse } from '../api/Api'
 import { authenticatedApi } from '../api/authenticatedApi'
 import KubeClustersForm from '../components/KubeClustersForm.vue'
 import KubeClustersList from '../components/KubeClustersList.vue'
@@ -223,12 +223,12 @@ const formData = computed(() => {
       server: selectedCluster.value.server || '',
       bearerToken: '', // Can't populate for security
       certificateAuthorityPem: '', // Can't populate for security
-      insecureSkipTlsVerify: Boolean(selectedCluster.value.insecureSkipTlsVerify),
-      defaultNamespace: selectedCluster.value.defaultNamespace || '',
+      insecureSkipTlsVerify: Boolean(selectedCluster.value.insecure_skip_tls_verify),
+      defaultNamespace: selectedCluster.value.default_namespace || '',
       instructions: selectedCluster.value.instructions || '',
-      responseFormat: selectedCluster.value.responseFormat || '',
-      hasBearerToken: Boolean(selectedCluster.value.hasBearerToken),
-      hasCertificateAuthority: Boolean(selectedCluster.value.hasCertificateAuthority)
+      responseFormat: selectedCluster.value.response_format || '',
+      hasBearerToken: Boolean(selectedCluster.value.bearer_token_enc),
+      hasCertificateAuthority: Boolean(selectedCluster.value.certificate_authority_pem)
     }
   }
   return {
@@ -255,8 +255,8 @@ const clusterToDelete = ref<KubeClusterResponse | null>(null)
 const fetchClusters = async () => {
   loading.value = true
   try {
-    const response = await authenticatedApi.api.v1ClustersList({})
-    clusters.value = response.data || []
+    const response = await authenticatedApi.kubeClusters.listKubeClustersKubeClustersGet({})
+    clusters.value = response.data?.kube_clusters || []
 
     // Auto-select first cluster if available
     if (clusters.value.length > 0 && !selectedCluster.value) {
@@ -325,18 +325,18 @@ const handleCreateCluster = async ({ valid, values }: { valid: boolean, values: 
   const existingIds = new Set(clusters.value.map(c => c.id))
 
   try {
-    const createData: CreateKubeClusterRequest = {
+    const createData = {
       name: String(values.name).trim(),
       server: String(values.server).trim(),
-      bearerToken: String(values.bearerToken).trim(),
-      certificateAuthorityPem: values.certificateAuthorityPem ? String(values.certificateAuthorityPem).trim() : undefined,
-      insecureSkipTlsVerify: Boolean(values.insecureSkipTlsVerify),
-      defaultNamespace: values.defaultNamespace ? String(values.defaultNamespace).trim() : undefined,
+      bearer_token: String(values.bearerToken).trim(),
+      certificate_authority_pem: values.certificateAuthorityPem ? String(values.certificateAuthorityPem).trim() : undefined,
+      insecure_skip_tls_verify: Boolean(values.insecureSkipTlsVerify),
+      default_namespace: values.defaultNamespace ? String(values.defaultNamespace).trim() : undefined,
       instructions: values.instructions ? String(values.instructions).trim() : undefined,
-      responseFormat: values.responseFormat ? String(values.responseFormat).trim() : undefined
+      response_format: values.responseFormat ? String(values.responseFormat).trim() : undefined
     }
 
-    await authenticatedApi.api.v1ClustersCreate(createData, {})
+    await authenticatedApi.kubeClusters.createKubeClusterKubeClustersPost(createData, {})
     toast.add({
       severity: 'success',
       summary: 'Success',
@@ -378,7 +378,7 @@ const handleFormSave = async ({ valid, values }: { valid: boolean, values: Recor
     // Update existing cluster
     saving.value = true
     try {
-      const updateData: Partial<UpdateKubeClusterRequest> = {}
+      const updateData: any = {}
       if (values.name && String(values.name).trim() !== selectedCluster.value.name) {
         updateData.name = String(values.name).trim()
       }
@@ -386,18 +386,18 @@ const handleFormSave = async ({ valid, values }: { valid: boolean, values: Recor
         updateData.server = String(values.server).trim()
       }
       if (values.bearerToken && String(values.bearerToken).trim()) {
-        updateData.bearerToken = String(values.bearerToken).trim()
+        updateData.bearer_token = String(values.bearerToken).trim()
       }
       if (values.certificateAuthorityPem && String(values.certificateAuthorityPem).trim()) {
-        updateData.certificateAuthorityPem = String(values.certificateAuthorityPem).trim()
+        updateData.certificate_authority_pem = String(values.certificateAuthorityPem).trim()
       }
-      if (values.insecureSkipTlsVerify !== undefined && Boolean(values.insecureSkipTlsVerify) !== Boolean(selectedCluster.value.insecureSkipTlsVerify)) {
-        updateData.insecureSkipTlsVerify = Boolean(values.insecureSkipTlsVerify)
+      if (values.insecureSkipTlsVerify !== undefined && Boolean(values.insecureSkipTlsVerify) !== Boolean(selectedCluster.value.insecure_skip_tls_verify)) {
+        updateData.insecure_skip_tls_verify = Boolean(values.insecureSkipTlsVerify)
       }
       if (values.defaultNamespace !== undefined) {
         const newNamespace = String(values.defaultNamespace).trim()
-        if (newNamespace !== (selectedCluster.value.defaultNamespace || '')) {
-          updateData.defaultNamespace = newNamespace || undefined
+        if (newNamespace !== (selectedCluster.value.default_namespace || '')) {
+          updateData.default_namespace = newNamespace || undefined
         }
       }
       if (values.instructions !== undefined) {
@@ -408,13 +408,13 @@ const handleFormSave = async ({ valid, values }: { valid: boolean, values: Recor
       }
       if (values.responseFormat !== undefined) {
         const newResponseFormat = String(values.responseFormat).trim()
-        if (newResponseFormat !== (selectedCluster.value.responseFormat || '')) {
-          updateData.responseFormat = newResponseFormat || undefined
+        if (newResponseFormat !== (selectedCluster.value.response_format || '')) {
+          updateData.response_format = newResponseFormat || undefined
         }
       }
 
       if (Object.keys(updateData).length > 0) {
-        await authenticatedApi.api.v1ClustersUpdate(selectedCluster.value.id!, updateData, {})
+        await authenticatedApi.kubeClusters.updateKubeClusterKubeClustersClusterIdPut(selectedCluster.value.id!, updateData, {})
         toast.add({
           severity: 'success',
           summary: 'Success',
@@ -446,7 +446,7 @@ const deleteCluster = async () => {
   deleting.value = true
 
   try {
-    await authenticatedApi.api.v1ClustersDelete(clusterToDelete.value.id!, {})
+    await authenticatedApi.kubeClusters.deleteKubeClusterKubeClustersClusterIdDelete(clusterToDelete.value.id!, {})
     toast.add({
       severity: 'success',
       summary: 'Success',

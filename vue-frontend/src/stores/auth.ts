@@ -20,10 +20,10 @@ export const useAuthStore = defineStore('auth', () => {
         baseUrl: import.meta.env.VITE_API_BASE_URL,
       })
 
-      // Manually add login method since swagger generation skipped auth endpoints
+      // Use Python backend login endpoint
       const loginMethod = (request: { email: string, password: string }) =>
         api.request({
-          path: `/api/v1/Auth/login`,
+          path: `/auth/login`,
           method: "POST",
           body: request,
           type: ContentType.Json,
@@ -35,9 +35,9 @@ export const useAuthStore = defineStore('auth', () => {
         password: password
       })
 
-      if (response.status === 200 && response.data && response.data.token) {
-        token.value = response.data.token
-        localStorage.setItem('auth_token', response.data.token)
+      if (response.status === 200 && response.data && response.data.access_token) {
+        token.value = response.data.access_token
+        localStorage.setItem('auth_token', response.data.access_token)
         console.log('Login successful, token stored')
         return true
       }

@@ -411,8 +411,8 @@ const isDeploymentAnalysisValid = computed(() =>
 const loadClusters = async () => {
   try {
     loadingClusters.value = true
-    const response = await authenticatedApi.api.v1ClustersList()
-    clusters.value = response.data || []
+    const response = await authenticatedApi.kubeClusters.listKubeClustersKubeClustersGet({})
+    clusters.value = response.data?.kube_clusters || []
   } catch (error) {
     console.error('Failed to load clusters:', error)
   } finally {
@@ -429,16 +429,15 @@ const runPodAnalysis = async () => {
 
     const request = {
       namespace: podAnalysis.value.namespace,
-      podName: podAnalysis.value.podName,
-      containerName: podAnalysis.value.containerName || undefined,
-      tailLines: podAnalysis.value.tailLines || undefined,
-      sinceSeconds: podAnalysis.value.sinceSeconds || undefined,
+      pod_name: podAnalysis.value.podName,
+      container_name: podAnalysis.value.containerName || undefined,
+      tail_lines: podAnalysis.value.tailLines || undefined,
+      since_seconds: podAnalysis.value.sinceSeconds || undefined,
       previous: podAnalysis.value.previous || undefined,
-      limitBytes: podAnalysis.value.limitBytes || undefined,
-      includeDescription: podAnalysis.value.includeDescription || undefined
+      limit_bytes: podAnalysis.value.limitBytes || undefined
     }
 
-    const response = await authenticatedApi.api.v1ClustersAnalysisPodsCreate(selectedCluster.value, request)
+    const response = await authenticatedApi.kubeClusters.analyzePodLogsKubeClustersClusterIdAnalyzePodsPost(selectedCluster.value, request)
     analysisResult.value = response.data
     console.log('Pod analysis result:', analysisResult.value)
   } catch (error: any) {
@@ -462,12 +461,11 @@ const runDeploymentAnalysis = async () => {
 
     const request = {
       namespace: deploymentAnalysis.value.namespace,
-      deploymentName: deploymentAnalysis.value.deploymentName,
-      fallback: deploymentAnalysis.value.fallback || undefined,
-      includeDescription: deploymentAnalysis.value.includeDescription || undefined
+      deployment_name: deploymentAnalysis.value.deploymentName,
+      fallback: deploymentAnalysis.value.fallback || undefined
     }
 
-    const response = await authenticatedApi.api.v1ClustersAnalysisDeploymentsCreate(selectedCluster.value, request)
+    const response = await authenticatedApi.kubeClusters.analyzeDeploymentLogsKubeClustersClusterIdAnalyzeDeploymentsPost(selectedCluster.value, request)
     analysisResult.value = response.data
   } catch (error: any) {
     console.error('Deployment analysis failed:', error)
