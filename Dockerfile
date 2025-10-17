@@ -4,16 +4,16 @@
 FROM python:3.11-alpine AS builder
 
 # Install uv for fast Python package management
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
+RUN pip install --no-cache-dir uv
 
 # Set working directory
 WORKDIR /app
 
 # Copy dependency files
-COPY pyproject.toml ./
+COPY pyproject.toml README.md ./
 
 # Install dependencies without dev dependencies for production
-RUN uv pip install --system --no-cache-dir -r pyproject.toml
+RUN uv pip install --system --no-cache-dir --requirements pyproject.toml
 
 # Runtime stage
 FROM python:3.11-alpine AS runtime
