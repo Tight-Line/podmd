@@ -49,6 +49,13 @@ class Settings(BaseSettings):
         le=1440,  # Max 24 hours
     )
 
+    # Encryption
+    encryption_key: str = Field(
+        ...,
+        description="32-byte base64-encoded key for AES-GCM encryption of credentials",
+        min_length=44,  # Base64 encoded 32 bytes + padding
+    )
+
     class Config:
         """
         Pydantic settings configuration.
