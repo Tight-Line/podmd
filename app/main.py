@@ -52,6 +52,12 @@ from app.routers.auth import router as auth_router
 # Include auth router
 app.include_router(auth_router)
 
+# Import kube-clusters router
+from app.routers.kube_clusters import router as kube_clusters_router
+
+# Include kube-clusters router
+app.include_router(kube_clusters_router)
+
 # Health check endpoint - required by Issue #1
 @app.get("/health")
 async def health_check(session: AsyncSession = Depends(get_db)):

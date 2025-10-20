@@ -5,6 +5,7 @@ Provides business logic for CRUD operations on KubeCluster entities with
 encryption, user isolation, and data validation.
 """
 
+from datetime import datetime, timezone
 from typing import List, Optional
 from uuid import UUID
 
@@ -56,12 +57,17 @@ class KubeClusterService:
         # Encrypt the bearer token
         encrypted_token = encrypt_token(cluster_data.bearer_token)
 
+        # Current timestamp
+        current_time = datetime.now(timezone.utc)
+
         # Create Source record
         source = Source(
             user_id=user_id,
             type="Kubernetes",
             name=cluster_data.name,
             server=str(cluster_data.server),  # Convert HttpUrl to string
+            created_at=current_time,
+            updated_at=current_time,
         )
         session.add(source)
         await session.flush()  # Get the ID
