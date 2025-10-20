@@ -12,23 +12,20 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import jwt, JWTError
 from passlib.context import CryptContext
-from pydantic import EmailStr
+from pydantic import BaseModel, EmailStr
 
 from app.config import settings
 from app.database import get_db
 from app.models import User
+from sqlalchemy import select
+
+# Import datetime for timestamps
 
 
 pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
 
 
-class AuthRequest:
-    """Base authentication request with email and password."""
-    email: EmailStr
-    password: str
-
-
-class RegisterRequest(AuthRequest):
+class RegisterRequest(BaseModel):
     """Request model for user registration."""
     email: EmailStr
     password: str
@@ -37,13 +34,13 @@ class RegisterRequest(AuthRequest):
         from_attributes = True
 
 
-class LoginRequest(AuthRequest):
+class LoginRequest(BaseModel):
     """Request model for user login."""
     email: EmailStr
     password: str
 
 
-class Token:
+class Token(BaseModel):
     """Response model for authentication tokens."""
     access_token: str
     token_type: str
@@ -114,7 +111,9 @@ async def authenticate_user(email: EmailStr, password: str, session: AsyncSessio
     Returns:
         User | None: The user if authenticated, None otherwise
     """
-    user = await session.get(User, email=email)
+    stmt = select(User).where(User.email == email)
+    result = await session.execute(stmt)
+    user = result.scalar_one_or_none()
     if not user:
         return None
     if not verify_password(password, user.hashed_password):
@@ -149,14 +148,21 @@ async def register(request: RegisterRequest, session: AsyncSession = Depends(get
     hashed_password = hash_password(request.password)
 
     # Create new user
-    user = User(email=request.email, hashed_password=hashed_password)
+    current_time = datetime.now(timezone.utc)
+    user = User(
+        email=request.email,
+        hashed_password=hashed_password,
+        created_at=current_time,
+        updated_at=current_time
+    )
 
     try:
         session.add(user)
         await session.commit()
         await session.refresh(user)
-    except IntegrityError:
+    except IntegrityError as e:
         await session.rollback()
+        print(f"IntegrityError during registration: {e}")
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="Email already registered"
