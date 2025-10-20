@@ -35,6 +35,20 @@ class Settings(BaseSettings):
         description="Host for the FastAPI application",
     )
 
+    # JWT
+    jwt_secret_key: str = Field(
+        ...,
+        description="Secret key for JWT tokens. Must be at least 32 characters.",
+        min_length=32,
+    )
+
+    access_token_expire_minutes: int = Field(
+        default=30,
+        description="Expiration time for access tokens in minutes",
+        ge=1,
+        le=1440,  # Max 24 hours
+    )
+
     class Config:
         """
         Pydantic settings configuration.

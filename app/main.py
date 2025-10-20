@@ -5,10 +5,12 @@ Provides the core FastAPI application with middleware, routing, and lifecycle ma
 """
 
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from .config import settings
+from .database import get_db
 
 
 @asynccontextmanager
@@ -44,9 +46,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Import auth router
+from app.routers.auth import router as auth_router
+
+# Include auth router
+app.include_router(auth_router)
+
 # Health check endpoint - required by Issue #1
 @app.get("/health")
-async def health_check():
+async def health_check(session: AsyncSession = Depends(get_db)):
     """
     Health check endpoint that verifies database connectivity.
 
@@ -54,20 +62,15 @@ async def health_check():
         dict: Health status with database connection state and timestamp
     """
     from datetime import datetime
+    from sqlalchemy import text
 
-    # Import here to avoid circular imports and only test when requested
-    from .database import get_db
-
-    db_status = "unknown"
+    db_status = "connected"
 
     try:
         # Test database connection
-        async for session in get_db():
-            # Simple query to test connectivity
-            result = await session.execute("SELECT 1")
-            db_status = "connected"
-            break
-    except Exception:
+        await session.execute(text("SELECT 1"))
+    except Exception as e:
+        print(f"DB connection error: {e}")
         db_status = "disconnected"
 
     return {
