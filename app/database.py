@@ -4,6 +4,8 @@ Database configuration and session management for PodMD.
 Provides SQLAlchemy async engine setup, session management, and base model class.
 """
 
+import datetime
+from sqlalchemy import event
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy.orm import DeclarativeBase
 
@@ -19,6 +21,18 @@ class Base(DeclarativeBase):
 
     # Subclasses will have __tablename__ inferred from class name
     # e.g. UserSource -> user_sources
+
+
+@event.listens_for(Base, 'before_insert', propagate=True)
+def set_created_at(mapper, connection, target):
+    if hasattr(target, 'created_at') and target.created_at is None:
+        target.created_at = datetime.datetime.utcnow()
+
+
+@event.listens_for(Base, 'before_update', propagate=True)
+def set_updated_at(mapper, connection, target):
+    if hasattr(target, 'updated_at'):
+        target.updated_at = datetime.datetime.utcnow()
 
 
 # Create async engine with configuration from settings

@@ -2,26 +2,27 @@
 
 ## Current Work Focus
 
-**Phase 1: FastAPI Application Scaffold - COMPLETE** ✅
+**Phase 2: Database Models - COMPLETE** ✅ | **Phase 3: Authentication & Security - NEXT**
 
-Memory Bank updated following successful implementation of the minimal FastAPI web server with PostgreSQL health checks. Application is fully functional, containerized, and deployed with CI/CD draft PR opened. Ready for **Phase 2: Core Models & Authentication** transition.
+Core database models implemented with SQLAlchemy async patterns, Alembic migration setup, and auto-updating timestamps. Infrastructure ready for JWT authentication and user management implementation.
 
 ## Recent Changes
 
-- **Phase 1 Implementation Complete**: Full FastAPI application scaffold built and tested
-- **PR Created**: Draft PR #2 opened for feature/setup-fastapi-health-1 implementing Issue #1
-- **Infrastructure Established**: Docker, Docker Compose, PostgreSQL integration, health checks
+- **Phase 2 Models Implementation Complete**: User, Source, KubeCluster SQLAlchemy models with async Alembic migrations implemented
+- **PR Created**: Draft PR #4 opened for feature/add-user-source-kubecluster-models-3 implementing Issue #3
+- **Infrastructure Established**: Alembic async migration setup, auto-updating timestamps, cascade relationships
 - **Code Standards Validated**: All implementation follows established patterns and conventions
-- **GitHub Workflow**: Issue → Branch → Implementation → PR process fully demonstrated
+- **GitHub Workflow**: Issue → Branch → Implementation → PR process fully demonstrated (2nd time)
 
 ## Next Steps
 
 ### Immediate Next Steps
 
-- **Transition to Phase 2**: Begin Core Models & Authentication implementation
-- **User Management**: Design SQLAlchemy user, role, and permission models
-- **Authentication Endpoints**: Implement JWT login, register, refresh operations
-- **Security Infrastructure**: Basic middleware and role-based access patterns
+- **Transition to Phase 3**: Begin Authentication & Security implementation
+- **Authentication Endpoints**: Implement JWT token generation/validation endpoints
+- **User Registration**: Password hashing with Argon2 and secure user creation
+- **Security Middleware**: JWT validation and CORS configuration
+- **Role-Based Access**: Basic permission system foundation
 
 ### Development Phase Planning
 
@@ -94,6 +95,33 @@ Memory Bank updated following successful implementation of the minimal FastAPI w
 - **Code Quality**: Black formatting, isort imports, mypy strict typing
 - **Documentation**: Auto-generated OpenAPI docs, comprehensive docstrings
 
+## Important Patterns and Preferences
+
+### Code Organization
+
+- **Module Structure**: app/ with clear separation (models/, schemas/, routers/, services/, utils/)
+- **Naming Conventions**: snake_case files/functions, PascalCase classes, SCREAMING_SNAKE constants
+- **Import Organization**: Standard library → Third-party → Local, sorted alphabetically
+
+### Async Patterns
+
+- **Database Operations**: Always use AsyncSession with async context managers
+- **External Calls**: httpx async client with timeout/retry configuration
+- **Concurrent Operations**: asyncio.gather for parallel log fetching from multiple sources
+- **Auto-Updating Timestamps**: SQLAlchemy event listeners for created_at/updated_at with UTC datetimes
+
+### Security Priorities
+
+- **Credential Storage**: AES-GCM encryption with key rotation for stored API tokens
+- **Input Validation**: Comprehensive Pydantic schemas for all API inputs
+- **Logging Standards**: Structured logging with sensitive data redaction (no tokens/keys logged)
+
+### Development Workflow
+
+- **Testing Strategy**: pytest-asyncio for async tests, aim for 80%+ coverage
+- **Code Quality**: Black formatting, isort imports, mypy strict typing
+- **Documentation**: Auto-generated OpenAPI docs, comprehensive docstrings
+
 ## Learnings and Project Insights
 
 ### Documentation Approach
@@ -107,6 +135,13 @@ Memory Bank updated following successful implementation of the minimal FastAPI w
 - **Async Importance**: Multiple concurrent integrations (K8s, Jenkins, GitLab, LLM) demand async design
 - **Security First**: SRE/DevOps users handle sensitive credentials - robust security mandatory
 - **Scalability Considerations**: Multi-tenant design with horizontal scaling from day one
+- **Async Alembic Patterns**: Established async env.py configuration with proper connection handling
+
+### Implementation Challenges
+
+- **Asyncpg Compatibility**: Python 3.13 compatibility resolved with pyenv and Poetry environment management
+- **Alembic Async Setup**: Required lambda function wrapper for SQLAlchemy async context manager in migration scripts
+- **Model Relationships**: Cascade deletes and foreign key constraints properly configured for data integrity
 
 ### Development Readiness
 
