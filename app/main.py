@@ -44,6 +44,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Import auth router
+from app.routers.auth import router as auth_router
+
+# Include auth router
+app.include_router(auth_router)
+
 # Health check endpoint - required by Issue #1
 @app.get("/health")
 async def health_check():
